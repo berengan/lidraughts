@@ -43,7 +43,8 @@ final class TournamentApi(
     lightUserApi: lidraughts.user.LightUserApi,
     proxyGame: Game.ID => Fu[Option[Game]],
     completeItaSwissRound: Tournament => Funit,
-    startItaSwiss: Tournament => Funit
+    startItaSwiss: Tournament => Funit,
+    finishItaSwiss: Tournament => Funit
 ) {
 
   private val bus = system.lidraughtsBus
@@ -265,6 +266,18 @@ final class TournamentApi(
         }
       }
     }
+  }
+
+  private[tournament] def finishItaSwissTournament(tour: Tournament): Funit = {
+    require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
+    TournamentRepo.setStatus(tour.id, Status.Finished) >>
+      PairingRepo.removePlaying(tour.id) map { _ =>
+        clearJsonViewCache(tour.id)
+        socketReload(tour.id)
+        publish()
+        clearWinnersCache(tour)
+        duelStore.remove(tour)
+      }
   }
 
   def kill(tour: Tournament): Unit = {
