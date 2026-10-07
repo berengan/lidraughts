@@ -5,11 +5,13 @@ $(function() {
   var $positionStandard = $('.form3 .position-standard');
   var $positionRussian = $('.form3 .position-russian');
   var $positionBrazilian = $('.form3 .position-brazilian');
+  var $positionItalian = $('.form3 .position-italian');
 
   function showPosition() {
     $positionStandard.toggleNone($variant.val() == 1);
     $positionRussian.toggleNone($variant.val() == 11);
     $positionBrazilian.toggleNone($variant.val() == 12);
+    $positionItalian.toggleNone($variant.val() == 13);
   };
   $variant.on('change', showPosition);
   showPosition();
