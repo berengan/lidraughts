@@ -26,7 +26,8 @@ case class TournamentState(
     roundCount: Int,
     rounds: List[Round] = Nil,
     usedOpeningCodes: Set[String] = Set.empty,
-    competitionPlayers: List[CompetitionPlayer] = Nil
+    competitionPlayers: List[CompetitionPlayer] = Nil,
+    retiredAt: Map[Int, Int] = Map.empty
 ) {
   require(roundCount > 0, "Italian Swiss tournament must have at least one round")
   require(competitionPlayers.map(_.number).distinct.size == competitionPlayers.size, "duplicate Italian Swiss competition number")
@@ -39,6 +40,16 @@ case class TournamentState(
     !finished && currentRound.forall(_.complete)
 
   def competitionNumbers: Map[Int, User.ID] = competitionPlayers.map(p => p.number -> p.userId).toMap
+  def competitionNumber(userId: User.ID): Option[Int] =
+    competitionPlayers.find(_.userId == userId).map(_.number)
+
+  def retire(userId: User.ID, roundNumber: Int): TournamentState = {
+    require(roundNumber >= 1 && roundNumber <= roundCount, "invalid Italian Swiss retirement round")
+    val number = competitionNumber(userId).getOrElse(sys.error("unknown Italian Swiss player"))
+    if (retiredAt.contains(number)) this
+    else copy(retiredAt = retiredAt + (number -> roundNumber))
+  }
+
   def playerCount: Int = competitionPlayers.size
   def hasCompetitionNumbers: Boolean = competitionPlayers.nonEmpty
 
