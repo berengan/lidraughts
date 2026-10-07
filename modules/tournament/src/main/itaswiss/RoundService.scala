@@ -1,35 +1,46 @@
-package lidraughts.tournament.itaswiss
+package lidraughts.tournament
+package itaswiss
 
-import lidraughts.tournament.{ Pairing => TournamentPairing, _ }
-import lidraughts.user.{ User, UserRepo }
+import lidraughts.tournament.{ Pairing => TournamentPairing }
+import lidraughts.user.UserRepo
 
 /** Executes an already validated ItaSwiss round plan using Lidraughts'
   * native Pairing/Game infrastructure.
   *
-  * Competition numbers are deliberately supplied explicitly: they are the
-  * stable FID identity used by PairingEngine and must never be inferred from
-  * Arena ranking order.
+  * Competition numbers come only from persistent TournamentState. They are
+  * drawn once and are never inferred again from Arena ranking order.
   */
 private[tournament] final class RoundService(autoPairing: AutoPairing) {
 
+  def startFirstRound(tour: Tournament, ranking: Ranking): Fu[Round] = {
+    val state = stateOf(tour)
+    require(state.hasCompetitionNumbers, "Italian Swiss competition numbers are not assigned")
+    require(state.rounds.isEmpty, "Italian Swiss first round already exists")
+    val pairingState = State(
+      playerCount = state.playerCount,
+      round = 1,
+      roundCount = state.roundCount,
+      scores = state.competitionNumbers.keys.map(_ -> 0d).toMap,
+      format = state.format
+    )
+    startRound(tour, pairingState, ranking)
+  }
+
   def startNextRound(
       tour: Tournament,
-      competitionNumbers: Map[Int, User.ID],
       ranking: Ranking,
       retiredAt: Map[Int, Int] = Map.empty
-  ): Fu[Round] =
-    NextRoundState.load(tour, competitionNumbers, retiredAt).flatMap { pairingState =>
-      startRound(tour, pairingState, competitionNumbers, ranking)
-    }
-
-  def startRound(
-      tour: Tournament,
-      pairingState: State,
-      competitionNumbers: Map[Int, User.ID],
-      ranking: Ranking
   ): Fu[Round] = {
+    val state = stateOf(tour)
+    NextRoundState.load(tour, state.competitionNumbers, retiredAt).flatMap { pairingState =>
+      startRound(tour, pairingState, ranking)
+    }
+  }
+
+  private def startRound(tour: Tournament, pairingState: State, ranking: Ranking): Fu[Round] = {
     require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
-    val state = tour.itaSwiss.getOrElse(sys.error("missing ItaSwiss tournament state"))
+    val state = stateOf(tour)
+    val competitionNumbers = state.competitionNumbers
     require(competitionNumbers.keySet == (1 to pairingState.playerCount).toSet, "invalid ItaSwiss competition numbers")
 
     val plan = RoundPlanner.plan(state, pairingState, tour.openingTable)
@@ -47,10 +58,13 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
     } inject plan.round
   }
 
+  private def stateOf(tour: Tournament) =
+    tour.itaSwiss.getOrElse(sys.error("missing ItaSwiss tournament state"))
+
   private def makePairings(
       tour: Tournament,
       round: Round,
-      competitionNumbers: Map[Int, User.ID]
+      competitionNumbers: Map[Int, lidraughts.user.User.ID]
   ): Fu[List[TournamentPairing]] =
     round.pairings.map { p =>
       TournamentPairing
