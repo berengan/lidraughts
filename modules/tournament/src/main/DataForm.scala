@@ -40,9 +40,7 @@ final class DataForm {
     description = none,
     hasChat = true.some,
     promoted = false.some,
-    system = none,
-    itaSwissFormat = none,
-    itaSwissRounds = none
+    tournamentType = TournamentTypeSetup()
   )
 
   def edit(user: User, tour: Tournament, teamBattleId: Option[TeamId] = None) = form(user) fill TournamentSetup(
@@ -67,9 +65,11 @@ final class DataForm {
     description = tour.description,
     hasChat = tour.hasChat.some,
     promoted = tour.isPromoted.some,
-    system = (tour.system == System.ItaSwiss).option(System.ItaSwiss.id),
-    itaSwissFormat = tour.itaSwiss.map(_.format.key),
-    itaSwissRounds = tour.itaSwiss.map(_.roundCount)
+    tournamentType = TournamentTypeSetup(
+      system = (tour.system == System.ItaSwiss).option(System.ItaSwiss.id),
+      itaSwissFormat = tour.itaSwiss.map(_.format.key),
+      itaSwissRounds = tour.itaSwiss.map(_.roundCount)
+    )
   )
 
   private val nameType = eventName(2, 30).verifying(
@@ -104,9 +104,11 @@ final class DataForm {
     "description" -> optional(cleanNonEmptyText(maxLength = 800)),
     "hasChat" -> optional(boolean),
     "promoted" -> optional(boolean),
-    "system" -> optional(number.verifying(System.all.map(_.id).contains _)),
-    "itaSwissFormat" -> optional(text.verifying(itaswiss.Format.all.map(_.key).contains _)),
-    "itaSwissRounds" -> optional(number(min = 1, max = 99))
+    "tournamentType" -> mapping(
+      "system" -> optional(number.verifying(System.all.map(_.id).contains _)),
+      "itaSwissFormat" -> optional(text.verifying(itaswiss.Format.all.map(_.key).contains _)),
+      "itaSwissRounds" -> optional(number(min = 1, max = 99))
+    )(TournamentTypeSetup.apply)(TournamentTypeSetup.unapply)
   )(TournamentSetup.apply)(TournamentSetup.unapply)
     .verifying("Invalid clock", _.validClock)
     .verifying("15s variant games cannot be rated", _.validRatedUltraBulletVariant)
@@ -151,6 +153,12 @@ object DataForm {
   }
 }
 
+private[tournament] case class TournamentTypeSetup(
+    system: Option[Int] = None,
+    itaSwissFormat: Option[String] = None,
+    itaSwissRounds: Option[Int] = None
+)
+
 private[tournament] case class TournamentSetup(
     name: Option[String],
     clockTime: Double,
@@ -173,9 +181,7 @@ private[tournament] case class TournamentSetup(
     description: Option[String],
     hasChat: Option[Boolean],
     promoted: Option[Boolean],
-    system: Option[Int],
-    itaSwissFormat: Option[String],
-    itaSwissRounds: Option[Int]
+    tournamentType: TournamentTypeSetup
 ) {
 
   def validClock = (clockTime + clockIncrement) > 0
@@ -184,9 +190,11 @@ private[tournament] case class TournamentSetup(
 
   def realVariant = variant.flatMap(DataForm.guessVariant) | draughts.variant.Standard
 
-  def realSystem = system.flatMap(System.apply) | System.Arena
+  def realSystem = tournamentType.system.flatMap(System.apply) | System.Arena
 
-  def realItaSwissFormat = itaSwissFormat.flatMap(itaswiss.Format.byKey)
+  def realItaSwissFormat = tournamentType.itaSwissFormat.flatMap(itaswiss.Format.byKey)
+
+  def itaSwissRounds = tournamentType.itaSwissRounds
 
   def validItaSwiss =
     realSystem != System.ItaSwiss ||
