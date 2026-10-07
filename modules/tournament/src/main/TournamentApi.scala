@@ -454,8 +454,8 @@ final class TournamentApi(
       PlayerRepo.update(tour.id, userId) { player =>
         cached.sheet.update(tour, userId) map { sheet =>
           player.copy(
-            score = sheet.total,
-            fire = tour.streakable && sheet.onFire,
+            score = if (tour.system == System.ItaSwiss) player.score else sheet.total,
+            fire = tour.system != System.ItaSwiss && tour.streakable && sheet.onFire,
             ratingDiff = finishing.fold(player.ratingDiff)(player.ratingDiff + _.playerByUserId(userId).fold(0)(_.ratingDiff.getOrElse(0))),
             rating = perf.fold(player.rating)(_.intRating),
             provisional = perf.fold(player.provisional)(_.provisional),
