@@ -147,5 +147,28 @@ class PairingEngineTest extends Specification {
       result.retired must_== List(6)
       result.pairingStartNumber must_== 6
     }
+
+    "never assign a second RM to a player who already received RM or RR" in {
+      val round1 = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4)),
+        rests = List(Rest(5, RestType.RM))
+      )
+      val round2 = RoundHistory(
+        pairings = List(Pairing(5, 3), Pairing(4, 1)),
+        rests = List(Rest(2, RestType.RM))
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 5,
+        round = 3,
+        roundCount = 4,
+        scores = Map(1 -> 3d, 2 -> 2d, 3 -> 1d, 4 -> 2d, 5 -> 4d),
+        history = Map(1 -> round1, 2 -> round2),
+        format = Format.Art8
+      ))
+
+      result.pairings must_== List(Pairing(1, 5), Pairing(2, 4))
+      result.rests must_== List(Rest(3, RestType.RM))
+      result.pairingStartNumber must_== 2
+    }
   }
 }
