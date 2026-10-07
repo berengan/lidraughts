@@ -27,11 +27,12 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
 
     UserRepo.idsMap(userIds).flatMap { users =>
       makePairings(tour, plan.round, competitionNumbers).flatMap { pairings =>
-        pairings.map { pairing =>
-          PairingRepo.insert(pairing) >>
-            autoPairing(tour, pairing, users, ranking, plan.round.opening)
-        }.sequenceFu.void >>
-          TournamentRepo.setItaSwissState(tour.id, plan.nextState)
+        val persistedState = plan.nextState.withGameIds(plan.round.number, pairings.map(_.gameId))
+        TournamentRepo.setItaSwissState(tour.id, persistedState) >>
+          pairings.map { pairing =>
+            PairingRepo.insert(pairing) >>
+              autoPairing(tour, pairing, users, ranking, plan.round.opening)
+          }.sequenceFu.void
       }
     } inject plan.round
   }
