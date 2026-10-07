@@ -1,4 +1,5 @@
-package lidraughts.tournament.itaswiss
+package lidraughts.tournament
+package itaswiss
 
 import lidraughts.tournament.{ Pairing => TournamentPairing, PairingRepo, Tournament }
 import lidraughts.user.User
