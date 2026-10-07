@@ -81,6 +81,18 @@ class ItalianTest extends Specification {
       destinations(sit, 22) must_== List(13)
     }
 
+    "prefer the line that captures a king earlier when value is otherwise equal" in {
+      val sit = situation(White,
+        22 -> (White - King),
+        17 -> (Black - King),
+        9 -> (Black - Man),
+        18 -> (Black - Man),
+        11 -> (Black - King)
+      )
+
+      destinations(sit, 22) must_== List(13)
+    }
+
     "prefer a king capture over a man capture when capture lengths are equal" in {
       val sit = situation(White,
         22 -> (White - Man),
