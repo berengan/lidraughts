@@ -24,6 +24,20 @@ class TournamentStateTest extends Specification {
       state.usedOpeningCodes must contain(opening.code)
     }
 
+    "refuse to complete a round that does not exist" in {
+      val state = TournamentState(Format.Art2, roundCount = 4)
+      state.complete(1) must throwA[IllegalArgumentException]
+    }
+
+    "refuse to complete an older round instead of the current one" in {
+      val state = TournamentState(Format.Art2, roundCount = 4)
+        .append(Round(1, 1, None, Nil, Nil, Nil))
+        .complete(1)
+        .append(Round(2, 2, None, Nil, Nil, Nil))
+
+      state.complete(1) must throwA[IllegalArgumentException]
+    }
+
     "keep pairing_start_number as round state" in {
       val state = TournamentState(Format.Art8, roundCount = 4)
         .append(Round(1, 5, None, Nil, List(Rest(5, RestType.RM)), Nil))
