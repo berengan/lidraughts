@@ -32,7 +32,9 @@ case class Actor(
 
   private def captureMoves(finalSquare: Boolean): List[Move] = piece.role match {
     case Man => board.variant.shortRangeCaptures(this, finalSquare)
-    case King => board.variant.longRangeCaptures(this, finalSquare)
+    case King =>
+      if (board.variant.kingCapturesLongRange) board.variant.longRangeCaptures(this, finalSquare)
+      else board.variant.shortRangeCaptures(this, finalSquare)
     case _ => Nil
   }
 
