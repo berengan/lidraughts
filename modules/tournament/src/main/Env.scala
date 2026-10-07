@@ -113,7 +113,10 @@ final class Env(
     completeItaSwissRound = tour =>
       itaswiss.RoundLifecycle.completeCurrentIfFinished(tour).flatMap {
         case None => funit
-        case Some(state) if state.finished => funit
+        case Some(state) if state.finished =>
+          val updatedTour = tour.copy(itaSwiss = Some(state))
+          itaswiss.ScoreService.sync(updatedTour, state) >>
+            itaswiss.FinishService.finish(updatedTour, state)
         case Some(state) =>
           val updatedTour = tour.copy(itaSwiss = Some(state))
           itaswiss.ScoreService.sync(updatedTour, state) >>
