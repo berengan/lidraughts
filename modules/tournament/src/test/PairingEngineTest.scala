@@ -148,6 +148,26 @@ class PairingEngineTest extends Specification {
       result.pairingStartNumber must_== 6
     }
 
+    "classify a rest as RM when all withdrawn opponents were already played" in {
+      val history = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
+        rests = Nil
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 6,
+        round = 2,
+        roundCount = 4,
+        scores = Map(1 -> 0d, 2 -> 2d, 3 -> 1d, 4 -> 1d, 5 -> 2d, 6 -> 0d),
+        history = Map(1 -> history),
+        format = Format.Art2,
+        retiredAt = Map(2 -> 1)
+      ))
+
+      result.rests.forall { rest =>
+        if (rest.player == 1) rest.restType == RestType.RM else true
+      } must beTrue
+    }
+
     "never assign a second RM to a player who already received RM or RR" in {
       val round1 = RoundHistory(
         pairings = List(Pairing(1, 2), Pairing(3, 4)),
