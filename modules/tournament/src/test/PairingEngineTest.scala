@@ -81,5 +81,71 @@ class PairingEngineTest extends Specification {
 
       result.pairingStartNumber must_== 5
     }
+
+    "match Kosmos v15.81 ART8 round 2 including backtracking outcome" in {
+      val history = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4)),
+        rests = List(Rest(5, RestType.RM))
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 5,
+        round = 2,
+        roundCount = 4,
+        scores = Map(1 -> 2d, 2 -> 0d, 3 -> 1d, 4 -> 1d, 5 -> 2d),
+        history = Map(1 -> history),
+        format = Format.Art8
+      ))
+
+      result.pairings must_== List(Pairing(5, 3), Pairing(4, 1))
+      result.rests must_== List(Rest(2, RestType.RM))
+      result.pairingStartNumber must_== 5
+    }
+
+    "match Kosmos v15.81 ART9 round 2 RT and color rules" in {
+      val history = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
+        rests = (7 to 15).map(Rest(_, RestType.RT)).toList
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 15,
+        round = 2,
+        roundCount = 7,
+        scores = Map(
+          1 -> 2d, 2 -> 0d, 3 -> 1d, 4 -> 1d, 5 -> 0d, 6 -> 2d,
+          7 -> 0d, 8 -> 0d, 9 -> 0d, 10 -> 0d, 11 -> 0d, 12 -> 0d,
+          13 -> 0d, 14 -> 0d, 15 -> 0d
+        ),
+        history = Map(1 -> history),
+        format = Format.Art9
+      ))
+
+      result.pairings must_== List(
+        Pairing(6, 3), Pairing(4, 5), Pairing(7, 8), Pairing(9, 10),
+        Pairing(11, 12), Pairing(13, 14), Pairing(2, 15)
+      )
+      result.rests must_== List(Rest(1, RestType.RT))
+      result.pairingStartNumber must_== 6
+    }
+
+    "match Kosmos v15.81 with a withdrawn player and an RR" in {
+      val history = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
+        rests = Nil
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 6,
+        round = 2,
+        roundCount = 4,
+        scores = Map(1 -> 2d, 2 -> 0d, 3 -> 1d, 4 -> 1d, 5 -> 2d, 6 -> 0d),
+        history = Map(1 -> history),
+        format = Format.Art2,
+        retiredAt = Map(6 -> 1)
+      ))
+
+      result.pairings must_== List(Pairing(1, 3), Pairing(4, 5))
+      result.rests must_== List(Rest(2, RestType.RR))
+      result.retired must_== List(6)
+      result.pairingStartNumber must_== 6
+    }
   }
 }
