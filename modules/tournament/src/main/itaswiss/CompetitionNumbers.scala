@@ -9,7 +9,7 @@ import lidraughts.user.User
   */
 object CompetitionNumbers {
 
-  def draw(userIds: List[User.ID], shuffle: List[User.ID] => List[User.ID] = scala.util.Random.shuffle[User.ID] _): List[CompetitionPlayer] = {
+  def draw(userIds: List[User.ID], shuffle: List[User.ID] => List[User.ID] = ids => scala.util.Random.shuffle(ids)): List[CompetitionPlayer] = {
     require(userIds.size > 1, "Italian Swiss requires at least two players")
     require(userIds.distinct.size == userIds.size, "duplicate Italian Swiss player")
     shuffle(userIds).zipWithIndex.map {
