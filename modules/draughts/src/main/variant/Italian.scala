@@ -111,11 +111,15 @@ case object Italian extends Variant(
     }
   }
 
-  def maxDrawingMoves(board: Board): Option[Int] = None
+  // FID 1.1.10: draw after 40 king moves by each player (80 plies),
+  // provided no man has moved and no capture has occurred.
+  def maxDrawingMoves(board: Board): Option[Int] = Some(80)
 
-  // Draw/repetition rules will be added from the FID technical regulation.
-  def updatePositionHashes(board: Board, move: Move, hash: draughts.PositionHash): PositionHash =
-    Hash(Situation(board, !move.piece.color))
+  def updatePositionHashes(board: Board, move: Move, hash: draughts.PositionHash): PositionHash = {
+    val newHash = Hash(Situation(board, !move.piece.color))
+    if (move.piece.role == King && !move.captures) newHash ++ hash
+    else newHash
+  }
 
   override def validSide(board: Board, strict: Boolean)(color: Color) = {
     val roles = board rolesOf color
