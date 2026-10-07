@@ -29,6 +29,7 @@ abstract class Variant private[variant] (
     piece.isNot(actor.color) && !piece.isGhost
   def kingMovesLongRange: Boolean = true
   def kingCapturesLongRange: Boolean = true
+  def captureEndsOnPromotion: Boolean = false
   def moveDirsColor: Map[Color, Directions]
   def moveDirsAll: Directions
 
@@ -178,7 +179,7 @@ abstract class Variant private[variant] (
                       val newDest = if (destPos.isDefined) destPos else landingPos.some
                       val newBoard = if (destBoard.isDefined) destBoard else boardAfter.some
                       var maxExtraCapts = 0
-                      captureDirsFor(actor).foreach {
+                      if (!(captureEndsOnPromotion && actor.piece.role == Man && promotablePos(landingPos, actor.color))) captureDirsFor(actor).foreach {
                         captDir =>
                           if (captDir._1 != opposite) {
                             val extraCapts = walkCaptures(captDir, boardAfter, landingPos, newDest, newBoard, newSquares, newTaken, newCaptureValue) - newCaptureValue
@@ -208,7 +209,7 @@ abstract class Variant private[variant] (
     }
 
     buf.flatMap { m =>
-      if (finalSquare || m.capture.exists(_.length == 1)) maybePromote(m)
+      if (finalSquare || m.capture.exists(_.length == 1) || (captureEndsOnPromotion && promotablePos(m.after.posAt(m.dest), m.color))) maybePromote(m)
       else m.some
     } toList
   }
