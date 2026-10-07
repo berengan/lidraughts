@@ -250,8 +250,12 @@ object PairingEngine {
   private def rests(flags: Map[Int, Flag], s: State, round: Int): List[Rest] =
     flags.toList.sortBy(_._1).collect {
       case (p, TurnRest) => Rest(p, RestType.RT)
-      case (p, Resting) => Rest(p, if (numRetired(s, round) > 0) RestType.RR else RestType.RM)
+      case (p, Resting) => Rest(p, restType(s, p, round))
     }
+
+  private def restType(s: State, player: Int, round: Int): RestType =
+    if (retiredPlayers(s, round).exists(retired => !played(s, player, retired, round - 1))) RestType.RR
+    else RestType.RM
 
   private def played(s: State, a: Int, b: Int, before: Int): Boolean =
     s.history.exists { case (r, h) =>
