@@ -109,7 +109,9 @@ final class Env(
     duelStore = duelStore,
     pause = pause,
     lightUserApi = userEnv.lightUserApi,
-    proxyGame = proxyGame
+    proxyGame = proxyGame,
+    completeItaSwissRound = tour =>
+      itaswiss.RoundLifecycle.completeCurrentIfFinished(tour).void
   )
 
   lazy val crudApi = new crud.CrudApi(cached)
