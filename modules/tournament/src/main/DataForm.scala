@@ -184,7 +184,7 @@ private[tournament] case class TournamentSetup(
 
   def realVariant = variant.flatMap(DataForm.guessVariant) | draughts.variant.Standard
 
-  def realSystem = system.flatMap(System.byId) | System.Arena
+  def realSystem = system.flatMap(System.apply) | System.Arena
 
   def realItaSwissFormat = itaSwissFormat.flatMap(itaswiss.Format.byKey)
 
