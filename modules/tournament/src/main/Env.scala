@@ -199,6 +199,9 @@ final class Env(
 
   private lazy val autoPairing = new AutoPairing(duelStore, onStart)
 
+  private[tournament] lazy val itaSwissRoundService =
+    new itaswiss.RoundService(autoPairing)
+
   private[tournament] lazy val tournamentColl = db(CollectionTournament)
   private[tournament] lazy val pairingColl = db(CollectionPairing)
   private[tournament] lazy val playerColl = db(CollectionPlayer)
