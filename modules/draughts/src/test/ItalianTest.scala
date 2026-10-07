@@ -133,10 +133,11 @@ class ItalianTest extends Specification {
 
       val moves = sit.validMoves(pos(10))
       moves.map(_.dest.fieldNumber).sorted must_== List(1, 3)
-      moves.map(_.taken.map(_.length).getOrElse(0)).sorted must_== List(1, 2)
-      val move = moves.find(_.dest == pos(3)).get
-      move.taken.map(_.length) must beSome(1)
-      move.situationAfter.board(pos(3)).map(_.role) must beSome(King)
+      moves.map(_.taken.map(_.length).getOrElse(0)).sorted must_== List(1, 1)
+      moves.foreach { move =>
+        move.taken.map(_.length) must beSome(1)
+        move.situationAfter.board(move.dest).map(_.role) must beSome(King)
+      }
     }
   }
 }
