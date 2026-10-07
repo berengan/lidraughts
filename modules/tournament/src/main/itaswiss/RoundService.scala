@@ -12,6 +12,16 @@ import lidraughts.user.{ User, UserRepo }
   */
 private[tournament] final class RoundService(autoPairing: AutoPairing) {
 
+  def startNextRound(
+      tour: Tournament,
+      competitionNumbers: Map[Int, User.ID],
+      ranking: Ranking,
+      retiredAt: Map[Int, Int] = Map.empty
+  ): Fu[Round] =
+    NextRoundState.load(tour, competitionNumbers, retiredAt).flatMap { pairingState =>
+      startRound(tour, pairingState, competitionNumbers, ranking)
+    }
+
   def startRound(
       tour: Tournament,
       pairingState: State,
