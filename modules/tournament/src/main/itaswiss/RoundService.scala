@@ -1,6 +1,7 @@
 package lidraughts.tournament
 package itaswiss
 
+import lidraughts.game.Game
 import lidraughts.tournament.{ Pairing => TournamentPairing }
 import lidraughts.user.UserRepo
 
@@ -12,7 +13,9 @@ import lidraughts.user.UserRepo
   */
 private[tournament] final class RoundService(autoPairing: AutoPairing) {
 
-  def startFirstRound(tour: Tournament, ranking: Ranking): Fu[Round] = {
+  case class Started(round: Round, games: List[Game])
+
+  def startFirstRound(tour: Tournament, ranking: Ranking): Fu[Started] = {
     val state = stateOf(tour)
     require(state.hasCompetitionNumbers, "Italian Swiss competition numbers are not assigned")
     require(state.rounds.isEmpty, "Italian Swiss first round already exists")
@@ -26,7 +29,7 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
     startRound(tour, pairingState, ranking)
   }
 
-  def startNextRound(tour: Tournament, ranking: Ranking): Fu[Round] =
+  def startNextRound(tour: Tournament, ranking: Ranking): Fu[Started] =
     RetirementService.sync(tour).flatMap { synced =>
       val syncedTour = tour.copy(itaSwiss = Some(synced))
       NextRoundState.load(syncedTour, synced.competitionNumbers, synced.retiredAt).flatMap { pairingState =>
@@ -34,7 +37,7 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
       }
     }
 
-  private def startRound(tour: Tournament, pairingState: State, ranking: Ranking): Fu[Round] = {
+  private def startRound(tour: Tournament, pairingState: State, ranking: Ranking): Fu[Started] = {
     require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
     val state = stateOf(tour)
     val competitionNumbers = state.competitionNumbers
@@ -50,9 +53,9 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
           pairings.map { pairing =>
             PairingRepo.insert(pairing) >>
               autoPairing(tour, pairing, users, ranking, plan.round.opening)
-          }.sequenceFu.void
+          }.sequenceFu.map(games => Started(persistedState.currentRound.get, games))
       }
-    } inject plan.round
+    }
   }
 
   private def stateOf(tour: Tournament) =
