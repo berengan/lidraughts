@@ -34,10 +34,11 @@ case class TournamentState(
   require(competitionPlayers.map(_.userId).distinct.size == competitionPlayers.size, "duplicate Italian Swiss player")
 
   def nextRoundNumber: Int = rounds.size + 1
-  def finished: Boolean = rounds.size >= roundCount
+  def allRoundsGenerated: Boolean = rounds.size >= roundCount
+  def finished: Boolean = allRoundsGenerated && currentRound.exists(_.complete)
   def currentRound: Option[Round] = rounds.lastOption
   def canGenerateNextRound: Boolean =
-    !finished && currentRound.forall(_.complete)
+    !allRoundsGenerated && currentRound.forall(_.complete)
 
   def competitionNumbers: Map[Int, User.ID] = competitionPlayers.map(p => p.number -> p.userId).toMap
   def competitionNumber(userId: User.ID): Option[Int] =
