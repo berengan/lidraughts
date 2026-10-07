@@ -80,7 +80,7 @@ private[tournament] object BSONHandlers {
       usedOpeningCodes = doc.getAs[List[String]]("usedOpeningCodes").getOrElse(Nil).toSet,
       competitionPlayers = doc.getAs[List[CompetitionPlayer]]("competitionPlayers").getOrElse(Nil),
       retiredAt = doc.getAs[BSONDocument]("retiredAt").map(_.elements.flatMap { e =>
-        e.value.asInstanceOf[BSONInteger].value.some.map(e.name.toInt -> _)
+        Some(e.name.toInt -> e.value.asInstanceOf[BSONInteger].value)
       }.toMap).getOrElse(Map.empty)
     )
     def write(state: TournamentState) = BSONDocument(
