@@ -41,7 +41,8 @@ final class TournamentApi(
     pause: Pause,
     asyncCache: lidraughts.memo.AsyncCache.Builder,
     lightUserApi: lidraughts.user.LightUserApi,
-    proxyGame: Game.ID => Fu[Option[Game]]
+    proxyGame: Game.ID => Fu[Option[Game]],
+    completeItaSwissRound: Tournament => Funit
 ) {
 
   private val bus = system.lidraughtsBus
@@ -426,6 +427,7 @@ final class TournamentApi(
     game.tournamentId foreach { tourId =>
       Sequencing(tourId)(TournamentRepo.startedById) { tour =>
         PairingRepo.finish(game) >>
+          (if (tour.system == System.ItaSwiss) completeItaSwissRound(tour) else funit) >>
           game.userIds.map(updatePlayer(tour, game.some)).sequenceFu.void >>- {
             duelStore.remove(game)
             socketReload(tour.id)
