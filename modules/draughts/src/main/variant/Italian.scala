@@ -31,6 +31,7 @@ case object Italian extends Variant(
 
   override def kingMovesLongRange = false
   override def kingCapturesLongRange = false
+  override def captureEndsOnPromotion = true
 
   // Men capture forward only. Kings capture in both directions.
   override def captureDirsFor(actor: Actor): Directions =
