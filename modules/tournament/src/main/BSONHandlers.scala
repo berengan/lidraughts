@@ -47,6 +47,7 @@ object BSONHandlers {
   }
 
   import Condition.BSONHandlers.AllBSONHandler
+  import itaswiss.BSONHandlers.tournamentStateHandler
 
   implicit val tournamentHandler = new BSON[Tournament] {
     def reads(r: BSON.Reader) = {
@@ -90,7 +91,8 @@ object BSONHandlers {
         description = r strO "description",
         hasChat = r boolO "chat" getOrElse true,
         isWfd = r boolO "wfd" getOrElse false,
-        isPromoted = r boolO "promoted" getOrElse false
+        isPromoted = r boolO "promoted" getOrElse false,
+        itaSwiss = r.getO[itaswiss.TournamentState]("itaSwiss")
       )
     }
     def writes(w: BSON.Writer, o: Tournament) = $doc(
@@ -125,7 +127,8 @@ object BSONHandlers {
       "description" -> o.description,
       "chat" -> (!o.hasChat).option(false),
       "wfd" -> o.isWfd.option(true),
-      "promoted" -> o.isPromoted.option(true)
+      "promoted" -> o.isPromoted.option(true),
+      "itaSwiss" -> o.itaSwiss
     )
   }
 
