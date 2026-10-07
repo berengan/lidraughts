@@ -66,7 +66,7 @@ final class TournamentApi(
       startDate = setup.startDate,
       mode = setup.realMode,
       password = setup.password,
-      system = System.Arena,
+      system = setup.realSystem,
       variant = setup.realVariant,
       position = setup.startingPosition,
       openingTable = setup.openingTable,
@@ -83,6 +83,17 @@ final class TournamentApi(
         tour.copy(isWfd = !tour.isTeamBattle && tour.conditions.teamMember.exists { team =>
           myTeams.exists(t => t.isWfd && t.id == team.teamId)
         })
+      } |> { tour =>
+        if (setup.realSystem == System.ItaSwiss)
+          tour.copy(
+            itaSwiss = Some(itaswiss.TournamentState(
+              format = setup.realItaSwissFormat.get,
+              roundCount = setup.itaSwissRounds.get
+            )),
+            noBerserk = true,
+            noStreak = true
+          )
+        else tour
       }
     sillyNameCheck(tour, me)
     logger.info(s"Create $tour")
