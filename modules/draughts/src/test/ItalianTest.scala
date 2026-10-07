@@ -120,7 +120,7 @@ class ItalianTest extends Specification {
       )
 
       val move = sit.validMoves(pos(5)).find(_.dest == pos(1)).get
-      move.situationAfter.board.pieceAt(pos(1)).map(_.role) must beSome(King)
+      move.situationAfter.board(pos(1)).map(_.role) must beSome(King)
     }
 
     "stop a capture when a man reaches the opponent base" in {
@@ -134,7 +134,7 @@ class ItalianTest extends Specification {
       destinations(sit, 10) must_== List(3)
       val move = sit.validMoves(pos(10)).head
       move.taken.map(_.length) must beSome(1)
-      move.situationAfter.board.pieceAt(pos(3)).map(_.role) must beSome(King)
+      move.situationAfter.board(pos(3)).map(_.role) must beSome(King)
     }
   }
 }
