@@ -26,6 +26,7 @@ private[tournament] object BSONHandlers {
     Format.byKey(key).getOrElse(throw new IllegalArgumentException("Unknown ItaSwiss format: " + key))
 
   private implicit val pairingHandler = Macros.handler[Pairing]
+  private implicit val competitionPlayerHandler = Macros.handler[CompetitionPlayer]
 
   private implicit val restHandler = new BSONHandler[BSONDocument, Rest] {
     def read(doc: BSONDocument) = Rest(
@@ -76,13 +77,15 @@ private[tournament] object BSONHandlers {
       format = format(doc.getAs[String]("format").get),
       roundCount = doc.getAs[Int]("roundCount").get,
       rounds = doc.getAs[List[Round]]("rounds").getOrElse(Nil),
-      usedOpeningCodes = doc.getAs[List[String]]("usedOpeningCodes").getOrElse(Nil).toSet
+      usedOpeningCodes = doc.getAs[List[String]]("usedOpeningCodes").getOrElse(Nil).toSet,
+      competitionPlayers = doc.getAs[List[CompetitionPlayer]]("competitionPlayers").getOrElse(Nil)
     )
     def write(state: TournamentState) = BSONDocument(
       "format" -> state.format.key,
       "roundCount" -> state.roundCount,
       "rounds" -> state.rounds,
-      "usedOpeningCodes" -> state.usedOpeningCodes.toList.sorted
+      "usedOpeningCodes" -> state.usedOpeningCodes.toList.sorted,
+      "competitionPlayers" -> state.competitionPlayers
     )
   }
 }
