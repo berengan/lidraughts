@@ -39,7 +39,10 @@ final class DataForm {
     streakable = true.some,
     description = none,
     hasChat = true.some,
-    promoted = false.some
+    promoted = false.some,
+    system = none,
+    itaSwissFormat = none,
+    itaSwissRounds = none
   )
 
   def edit(user: User, tour: Tournament, teamBattleId: Option[TeamId] = None) = form(user) fill TournamentSetup(
@@ -63,7 +66,10 @@ final class DataForm {
     streakable = tour.streakable.some,
     description = tour.description,
     hasChat = tour.hasChat.some,
-    promoted = tour.isPromoted.some
+    promoted = tour.isPromoted.some,
+    system = (tour.system == System.ItaSwiss).option(System.ItaSwiss.id),
+    itaSwissFormat = tour.itaSwiss.map(_.format.key),
+    itaSwissRounds = tour.itaSwiss.map(_.roundCount)
   )
 
   private val nameType = eventName(2, 30).verifying(
@@ -97,13 +103,17 @@ final class DataForm {
     "streakable" -> optional(boolean),
     "description" -> optional(cleanNonEmptyText(maxLength = 800)),
     "hasChat" -> optional(boolean),
-    "promoted" -> optional(boolean)
+    "promoted" -> optional(boolean),
+    "system" -> optional(number.verifying(System.all.map(_.id).contains _)),
+    "itaSwissFormat" -> optional(text.verifying(itaswiss.Format.all.map(_.key).contains _)),
+    "itaSwissRounds" -> optional(number(min = 1, max = 99))
   )(TournamentSetup.apply)(TournamentSetup.unapply)
     .verifying("Invalid clock", _.validClock)
     .verifying("15s variant games cannot be rated", _.validRatedUltraBulletVariant)
     .verifying("Increase tournament duration, or decrease game clock", _.sufficientDuration)
     .verifying("Reduce tournament duration, or increase game clock", _.excessiveDuration)
-    .verifying("Start date is too far in the future", _.validStartDate))
+    .verifying("Start date is too far in the future", _.validStartDate)
+    .verifying("Italian Swiss requires Italian draughts, a FID format and round count", _.validItaSwiss))
 }
 
 object DataForm {
@@ -162,7 +172,10 @@ private[tournament] case class TournamentSetup(
     streakable: Option[Boolean],
     description: Option[String],
     hasChat: Option[Boolean],
-    promoted: Option[Boolean]
+    promoted: Option[Boolean],
+    system: Option[Int],
+    itaSwissFormat: Option[String],
+    itaSwissRounds: Option[Int]
 ) {
 
   def validClock = (clockTime + clockIncrement) > 0
@@ -170,6 +183,14 @@ private[tournament] case class TournamentSetup(
   def realMode = Mode(rated.orElse(mode.map(Mode.Rated.id ==)) | true)
 
   def realVariant = variant.flatMap(DataForm.guessVariant) | draughts.variant.Standard
+
+  def realSystem = system.flatMap(System.byId) | System.Arena
+
+  def realItaSwissFormat = itaSwissFormat.flatMap(itaswiss.Format.byKey)
+
+  def validItaSwiss =
+    realSystem != System.ItaSwiss ||
+      (realVariant == draughts.variant.Italian && realItaSwissFormat.isDefined && itaSwissRounds.exists(_ > 0))
 
   def clockConfig = draughts.Clock.Config((clockTime * 60).toInt, clockIncrement)
 
