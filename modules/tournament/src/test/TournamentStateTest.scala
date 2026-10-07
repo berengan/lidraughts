@@ -38,6 +38,15 @@ class TournamentStateTest extends Specification {
       state.complete(1) must throwA[IllegalArgumentException]
     }
 
+    "bind exactly one game id to every pairing in the current round" in {
+      val state = TournamentState(Format.Art2, roundCount = 4)
+        .append(Round(1, 1, None, List(Pairing(1, 2), Pairing(3, 4)), Nil, Nil))
+
+      val bound = state.withGameIds(1, List("g1", "g2"))
+      bound.currentRound.map(_.gameIds) must beSome(List("g1", "g2"))
+      state.withGameIds(1, List("g1")) must throwA[IllegalArgumentException]
+    }
+
     "keep pairing_start_number as round state" in {
       val state = TournamentState(Format.Art8, roundCount = 4)
         .append(Round(1, 5, None, Nil, List(Rest(5, RestType.RM)), Nil))
