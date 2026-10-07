@@ -43,6 +43,28 @@ object RoundResults {
     )
   }
 
+  def scores(
+      tournamentState: TournamentState,
+      competitionNumbers: Map[Int, User.ID],
+      completedPairings: List[TournamentPairing]
+  ): Map[User.ID, Int] = {
+    val numberByUser = competitionNumbers.map(_.swap)
+    val gameScores = accumulatedGameScores(numberByUser, completedPairings)
+    val restScores = tournamentState.rounds.foldLeft(Map.empty[Int, Double]) { (acc, round) =>
+      round.rests.foldLeft(acc) { (a, rest) =>
+        val points = rest.restType match {
+          case RestType.RM | RestType.RR => 2d
+          case RestType.RT => 0d
+        }
+        a.updated(rest.player, a.getOrElse(rest.player, 0d) + points)
+      }
+    }
+    competitionNumbers.map {
+      case (number, userId) =>
+        userId -> (gameScores.getOrElse(number, 0d) + restScores.getOrElse(number, 0d)).toInt
+    }
+  }
+
   private def accumulatedGameScores(
       numberByUser: Map[User.ID, Int],
       pairings: List[TournamentPairing]
