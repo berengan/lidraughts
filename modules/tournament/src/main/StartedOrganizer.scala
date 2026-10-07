@@ -39,6 +39,7 @@ private final class StartedOrganizer(
             val nb = activeUserIds.size
             val result: Funit =
               if (tour.secondsToFinish <= 0) fuccess(api finish tour)
+              else if (tour.system == System.ItaSwiss) funit
               else if (!tour.pairingsClosed && nb >= 2) startPairing(tour, activeUserIds, startAt)
               else funit
             result >>- reminder(tour, activeUserIds) inject nb
