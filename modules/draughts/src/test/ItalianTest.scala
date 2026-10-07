@@ -20,6 +20,9 @@ class ItalianTest extends Specification {
   private def destinations(situation: Situation, from: Int): List[Int] =
     situation.validMoves.getOrElse(pos(from), Nil).map(_.dest.fieldNumber).sorted
 
+  private def play(situation: Situation, from: Int, to: Int): Situation =
+    situation.validMoves(pos(from)).find(_.dest == pos(to)).get.situationAfter
+
   "Italian draughts" should {
 
     "use short-range kings" in {
@@ -136,6 +139,74 @@ class ItalianTest extends Specification {
 
       val move = sit.validMoves(pos(5)).find(_.dest == pos(1)).get
       move.situationAfter.board(pos(1)).map(_.role) must beSome(King)
+    }
+
+    "detect the third occurrence of the same position with the same side to move" in {
+      var sit = situation(
+        White,
+        29 -> (White - King),
+        4 -> (Black - King)
+      )
+
+      (1 to 3).foreach { _ =>
+        sit = play(sit, 29, 25)
+        sit = play(sit, 4, 8)
+        sit = play(sit, 25, 29)
+        sit = play(sit, 8, 4)
+      }
+
+      sit.threefoldRepetition must beTrue
+    }
+
+    "count 80 consecutive non-capturing king plies for the drawing rule" in {
+      val sit = situation(
+        White,
+        29 -> (White - King),
+        4 -> (Black - King)
+      )
+      val board79 = sit.board.withHistory(sit.board.history.setHalfMoveClock(79))
+      val board80 = sit.board.withHistory(sit.board.history.setHalfMoveClock(80))
+
+      Italian.maxDrawingMoves(sit.board) must beSome(80)
+      board79.autoDraw must beFalse
+      board80.autoDraw must beTrue
+    }
+
+    "continue the drawing counter after a non-capturing king move" in {
+      val base = situation(
+        White,
+        29 -> (White - King),
+        4 -> (Black - King)
+      )
+      val sit = Situation(base.board.withHistory(base.board.history.setHalfMoveClock(12)), White)
+      val after = play(sit, 29, 25)
+
+      after.board.history.halfMoveClock must_== 13
+    }
+
+    "reset the drawing counter when a man moves" in {
+      val base = situation(
+        White,
+        22 -> (White - Man),
+        4 -> (Black - King)
+      )
+      val sit = Situation(base.board.withHistory(base.board.history.setHalfMoveClock(12)), White)
+      val after = play(sit, 22, 17)
+
+      after.board.history.halfMoveClock must_== 0
+    }
+
+    "reset the drawing counter after a capture" in {
+      val base = situation(
+        White,
+        22 -> (White - King),
+        18 -> (Black - Man),
+        4 -> (Black - King)
+      )
+      val sit = Situation(base.board.withHistory(base.board.history.setHalfMoveClock(12)), White)
+      val after = play(sit, 22, 15)
+
+      after.board.history.halfMoveClock must_== 0
     }
 
     "stop a capture when a man reaches the opponent base" in {
