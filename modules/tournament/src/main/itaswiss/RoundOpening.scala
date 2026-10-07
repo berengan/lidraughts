@@ -21,10 +21,10 @@ object RoundOpening {
       chooseIndex: Int => Int = scala.util.Random.nextInt
   ): Option[Draw] = {
     val choices = available(table, usedCodes)
-    if (choices.isEmpty) none
+    if (choices.isEmpty) None
     else {
       val position = choices(chooseIndex(choices.size))
-      Draw(position, usedCodes + position.code).some
+      Some(Draw(position, usedCodes + position.code))
     }
   }
 }
