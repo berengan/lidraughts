@@ -26,16 +26,13 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
     startRound(tour, pairingState, ranking)
   }
 
-  def startNextRound(
-      tour: Tournament,
-      ranking: Ranking,
-      retiredAt: Map[Int, Int] = Map.empty
-  ): Fu[Round] = {
-    val state = stateOf(tour)
-    NextRoundState.load(tour, state.competitionNumbers, retiredAt).flatMap { pairingState =>
-      startRound(tour, pairingState, ranking)
+  def startNextRound(tour: Tournament, ranking: Ranking): Fu[Round] =
+    RetirementService.sync(tour).flatMap { synced =>
+      val syncedTour = tour.copy(itaSwiss = Some(synced))
+      NextRoundState.load(syncedTour, synced.competitionNumbers, synced.retiredAt).flatMap { pairingState =>
+        startRound(syncedTour, pairingState, ranking)
+      }
     }
-  }
 
   private def startRound(tour: Tournament, pairingState: State, ranking: Ranking): Fu[Round] = {
     require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
