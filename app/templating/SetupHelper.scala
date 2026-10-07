@@ -163,7 +163,8 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
       draughts.variant.Antidraughts,
       draughts.variant.Breakthrough,
       draughts.variant.Russian,
-      draughts.variant.Brazilian
+      draughts.variant.Brazilian,
+      draughts.variant.Italian
     ).map(variantTuple(encode))
 
   def translatedVariantChoicesWithFen(implicit ctx: Context) =
