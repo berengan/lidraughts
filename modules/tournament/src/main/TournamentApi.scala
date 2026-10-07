@@ -42,7 +42,8 @@ final class TournamentApi(
     asyncCache: lidraughts.memo.AsyncCache.Builder,
     lightUserApi: lidraughts.user.LightUserApi,
     proxyGame: Game.ID => Fu[Option[Game]],
-    completeItaSwissRound: Tournament => Funit
+    completeItaSwissRound: Tournament => Funit,
+    startItaSwiss: Tournament => Funit
 ) {
 
   private val bus = system.lidraughtsBus
@@ -228,7 +229,8 @@ final class TournamentApi(
 
   def start(oldTour: Tournament): Unit =
     Sequencing(oldTour.id)(TournamentRepo.createdById) { tour =>
-      TournamentRepo.setStatus(tour.id, Status.Started) >>-
+      TournamentRepo.setStatus(tour.id, Status.Started) >>
+        (if (tour.system == System.ItaSwiss) startItaSwiss(tour) else funit) >>-
         socketReload(tour.id) >>-
         publish()
     }
