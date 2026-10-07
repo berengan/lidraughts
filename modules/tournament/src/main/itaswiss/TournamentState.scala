@@ -14,6 +14,7 @@ case class Round(
     pairings: List[Pairing],
     rests: List[Rest],
     retired: List[Int],
+    gameIds: List[String] = Nil,
     complete: Boolean = false
 )
 
@@ -37,6 +38,12 @@ case class TournamentState(
     require(!rounds.exists(_.number == round.number), "Italian Swiss round already exists")
     val openingCodes = round.opening.fold(usedOpeningCodes)(p => usedOpeningCodes + p.code)
     copy(rounds = rounds :+ round, usedOpeningCodes = openingCodes)
+  }
+
+  def withGameIds(roundNumber: Int, gameIds: List[String]): TournamentState = {
+    require(currentRound.exists(_.number == roundNumber), "only the current Italian Swiss round can receive games")
+    require(gameIds.size == currentRound.get.pairings.size, "wrong number of Italian Swiss game ids")
+    copy(rounds = rounds.map(r => if (r.number == roundNumber) r.copy(gameIds = gameIds) else r))
   }
 
   def complete(roundNumber: Int): TournamentState = {
