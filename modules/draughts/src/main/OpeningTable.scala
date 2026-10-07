@@ -1084,7 +1084,7 @@ object OpeningTable {
     categories = categoriesIDFBasic
   )
 
-  private val allTables = List(tableFmjd, tableFmjdBrazilian, tableIDFBasic)
+  private val allTables = List(tableFmjd, tableFmjdBrazilian, tableIDFBasic) ::: ItalianOpeningTable.allTables
   private val key2table: Map[String, OpeningTable] = allTables.map { p =>
     p.key -> p
   }(scala.collection.breakOut)
