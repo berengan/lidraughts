@@ -24,6 +24,11 @@ abstract class Variant private[variant] (
   lazy val shortInitialFen = initialFen.split(":").take(3).mkString(":")
 
   def captureDirs: Directions
+  def captureDirsFor(actor: Actor): Directions = captureDirs
+  def canCapture(actor: Actor, piece: Piece): Boolean =
+    piece.isNot(actor.color) && !piece.isGhost
+  def kingMovesLongRange: Boolean = true
+  def kingCapturesLongRange: Boolean = true
   def moveDirsColor: Map[Color, Directions]
   def moveDirsAll: Directions
 
@@ -34,6 +39,7 @@ abstract class Variant private[variant] (
   def breakthrough = this == Breakthrough
   def russian = this == Russian
   def brazilian = this == Brazilian
+  def italian = this == Italian
   def fromPosition = this == FromPosition
 
   def frisianVariant = frisian || frysk
