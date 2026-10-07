@@ -30,6 +30,10 @@ object PairingRepo {
   def recentByTour(tourId: Tournament.ID, nb: Int): Fu[Pairings] =
     coll.find(selectTour(tourId)).sort(recentSort).list[Pairing](nb)
 
+  private[tournament] def byIds(ids: List[Game.ID]): Fu[Pairings] =
+    if (ids.isEmpty) fuccess(Nil)
+    else coll.find($doc("_id" $in ids)).list[Pairing]()
+
   def lastOpponents(tourId: Tournament.ID, userIds: Iterable[User.ID], nb: Int): Fu[Pairing.LastOpponents] = coll.find(
     selectTour(tourId) ++ $doc("u" $in userIds),
     $doc("_id" -> false, "u" -> true)
