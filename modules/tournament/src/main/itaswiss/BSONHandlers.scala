@@ -78,14 +78,20 @@ private[tournament] object BSONHandlers {
       roundCount = doc.getAs[Int]("roundCount").get,
       rounds = doc.getAs[List[Round]]("rounds").getOrElse(Nil),
       usedOpeningCodes = doc.getAs[List[String]]("usedOpeningCodes").getOrElse(Nil).toSet,
-      competitionPlayers = doc.getAs[List[CompetitionPlayer]]("competitionPlayers").getOrElse(Nil)
+      competitionPlayers = doc.getAs[List[CompetitionPlayer]]("competitionPlayers").getOrElse(Nil),
+      retiredAt = doc.getAs[BSONDocument]("retiredAt").map(_.elements.flatMap { e =>
+        e.value.asInstanceOf[BSONInteger].value.some.map(e.name.toInt -> _)
+      }.toMap).getOrElse(Map.empty)
     )
     def write(state: TournamentState) = BSONDocument(
       "format" -> state.format.key,
       "roundCount" -> state.roundCount,
       "rounds" -> state.rounds,
       "usedOpeningCodes" -> state.usedOpeningCodes.toList.sorted,
-      "competitionPlayers" -> state.competitionPlayers
+      "competitionPlayers" -> state.competitionPlayers,
+      "retiredAt" -> BSONDocument(state.retiredAt.toList.map {
+        case (number, round) => number.toString -> BSONInteger(round)
+      })
     )
   }
 }
