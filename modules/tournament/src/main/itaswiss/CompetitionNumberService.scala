@@ -10,7 +10,7 @@ private[tournament] object CompetitionNumberService {
     require(!state.hasCompetitionNumbers, "Italian Swiss competition numbers are already assigned")
     require(state.rounds.isEmpty, "Italian Swiss pairing already started")
 
-    PlayerRepo.userIds(tour.id).flatMap { userIds =>
+    PlayerRepo.activeUserIds(tour.id).flatMap { userIds =>
       val assigned = state.withCompetitionPlayers(CompetitionNumbers.draw(userIds))
       TournamentRepo.setItaSwissState(tour.id, assigned) inject assigned
     }
