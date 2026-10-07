@@ -39,6 +39,9 @@ case class TournamentState(
     copy(rounds = rounds :+ round, usedOpeningCodes = openingCodes)
   }
 
-  def complete(roundNumber: Int): TournamentState =
+  def complete(roundNumber: Int): TournamentState = {
+    require(rounds.exists(_.number == roundNumber), "Italian Swiss round does not exist")
+    require(currentRound.exists(_.number == roundNumber), "only the current Italian Swiss round can be completed")
     copy(rounds = rounds.map(r => if (r.number == roundNumber) r.copy(complete = true) else r))
+  }
 }
