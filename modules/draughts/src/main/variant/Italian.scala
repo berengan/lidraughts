@@ -23,7 +23,7 @@ case object Italian extends Variant(
 
   def pieces = Russian.pieces
   def initialFen = Russian.initialFen
-  def startingPosition = StartingPosition("---", initialFen, "", "Initial position".some)
+  def startingPosition = StartingPosition("---", initialFen, "", "Initial position".some)\n  override lazy val openingTables = ItalianOpeningTable.allTables
 
   def captureDirs = Standard.captureDirs
   def moveDirsColor = Standard.moveDirsColor
