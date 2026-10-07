@@ -116,11 +116,12 @@ final class Env(
         case Some(state) if state.finished => funit
         case Some(state) =>
           val updatedTour = tour.copy(itaSwiss = Some(state))
-          cached.ranking(updatedTour).flatMap { ranking =>
-            itaSwissRoundService.startNextRound(updatedTour, ranking).map { started =>
-              started.games.foreach(game => socketMap.tell(tour.id, actorApi.StartGame(game)))
-            }.void
-          }
+          itaswiss.ScoreService.sync(updatedTour, state) >>
+            PlayerRepo.computeRanking(tour.id).flatMap { ranking =>
+              itaSwissRoundService.startNextRound(updatedTour, ranking).map { started =>
+                started.games.foreach(game => socketMap.tell(tour.id, actorApi.StartGame(game)))
+              }.void
+            }
       },
     startItaSwiss = tour =>
       itaswiss.CompetitionNumberService.assign(tour).flatMap { state =>
