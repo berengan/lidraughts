@@ -40,7 +40,7 @@ final class DataForm {
     description = none,
     hasChat = true.some,
     promoted = false.some,
-    tournamentType = TournamentTypeSetup()
+    tournamentType = TournamentTypeSetup(system = System.Arena.id.some)
   )
 
   def edit(user: User, tour: Tournament, teamBattleId: Option[TeamId] = None) = form(user) fill TournamentSetup(
