@@ -51,7 +51,8 @@ case object Italian extends Variant(
    *   1. capture the greatest number of pieces;
    *   2. with equal length, capture with a king rather than a man;
    *   3. then capture the greatest number of kings;
-   *   4. then capture a king as early as possible in the sequence.
+   *   4. then prefer the lexicographically greatest capture-quality sequence
+   *      (king > man at the first differing captured piece).
    *
    * If several lines are still equal, all remain legal.
    */
@@ -74,11 +75,11 @@ case object Italian extends Variant(
         case (actor, move) => capturedKings(actor.board, move) == maxKings
       }
 
-      val earliestKing = byCapturedValue.map {
-        case (actor, move) => firstCapturedKing(actor.board, move)
-      }.min
+      val bestCaptureOrder = byCapturedValue.map {
+        case (actor, move) => captureOrderValue(actor.board, move)
+      }.max
       val selected = byCapturedValue.filter {
-        case (actor, move) => firstCapturedKing(actor.board, move) == earliestKing
+        case (actor, move) => captureOrderValue(actor.board, move) == bestCaptureOrder
       }
 
       selected.groupBy(_._1.pos).map {
@@ -101,13 +102,13 @@ case object Italian extends Variant(
       board(pos).exists(_.role == King)
     }
 
-  private def firstCapturedKing(board: Board, move: Move): Int = {
+  private def captureOrderValue(board: Board, move: Move): Int = {
     // Capture lists are accumulated in reverse order by the move generator.
-    val chronological = move.taken.toList.flatten.reverse
-    val index = chronological.indexWhere { pos =>
-      board(pos).exists(_.role == King)
+    // Reading King as 1 and Man as 0 makes the numeric comparison equivalent
+    // to the required lexicographic comparison of the whole capture sequence.
+    move.taken.toList.flatten.reverse.foldLeft(0) { (value, pos) =>
+      (value << 1) | (if (board(pos).exists(_.role == King)) 1 else 0)
     }
-    if (index < 0) Int.MaxValue else index
   }
 
   def maxDrawingMoves(board: Board): Option[Int] = None
