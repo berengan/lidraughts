@@ -127,6 +127,25 @@ class PairingEngineTest extends Specification {
       result.pairingStartNumber must_== 6
     }
 
+    "keep a player withdrawn during the current round in that round history and exclude them from the next pairing" in {
+      val round1 = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4)),
+        rests = Nil
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 4,
+        round = 2,
+        roundCount = 3,
+        scores = Map(1 -> 2d, 2 -> 0d, 3 -> 2d, 4 -> 0d),
+        history = Map(1 -> round1),
+        format = Format.Art2,
+        retiredAt = Map(4 -> 1)
+      ))
+
+      result.retired must_== List(4)
+      result.pairings.flatMap(p => List(p.white, p.black)) must not contain 4
+    }
+
     "match Kosmos v15.81 with a withdrawn player and an RR" in {
       val history = RoundHistory(
         pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
