@@ -168,6 +168,11 @@ object TournamentRepo {
   def setStatus(tourId: Tournament.ID, status: Status) =
     coll.update($id(tourId), $set("status" -> status.id)).void
 
+  def setItaSwissState(tourId: Tournament.ID, state: itaswiss.TournamentState) = {
+    import itaswiss.BSONHandlers.tournamentStateHandler
+    coll.update($id(tourId), $set("itaSwiss" -> state)).void
+  }
+
   def setNbPlayers(tourId: Tournament.ID, nb: Int) =
     coll.update($id(tourId), $set("nbPlayers" -> nb)).void
 
