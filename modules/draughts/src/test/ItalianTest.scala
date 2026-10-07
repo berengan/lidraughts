@@ -118,6 +118,17 @@ class ItalianTest extends Specification {
       moves.head.taken.toList.flatten.reverse.map(_.fieldNumber) must_== List(6, 14, 15, 7)
     }
 
+    "keep all captures legal when every capture priority is equal" in {
+      val sit = situation(
+        White,
+        22 -> (White - King),
+        17 -> (Black - Man),
+        18 -> (Black - Man)
+      )
+
+      destinations(sit, 22) must_== List(13, 15)
+    }
+
     "prefer a king capture over a man capture when capture lengths are equal" in {
       val sit = situation(
         White,
