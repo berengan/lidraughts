@@ -33,6 +33,7 @@ object form {
           postForm(cls := "form3", action := routes.Tournament.create)(
             fields.name(isTeamBattle),
             form3.split(fields.rated, fields.variant),
+            fields.tournamentType,
             fields.startPosition(Standard),
             fields.startPosition(Russian),
             fields.startPosition(Brazilian),
@@ -237,6 +238,27 @@ final private class TourFields(me: User, form: Form[_])(implicit ctx: Context) {
     form3.group(form("variant"), trans.variant(), half = true)(
       form3.select(_, translatedVariantChoicesWithVariants.map(x => x._1 -> x._2))
     )
+  def tournamentType = frag(
+    form3.group(form("tournamentType.system"), "Sistema torneo")(
+      form3.select(_, List(
+        "1" -> "Arena",
+        "2" -> "Italo-Svizzero FID"
+      ))
+    ),
+    form3.split(
+      form3.group(form("tournamentType.itaSwissFormat"), "Formato Italo-Svizzero", half = true)(
+        form3.select(_, List(
+          "" -> "—",
+          "ITA_SWISS_FID_ART2" -> "Art. 2",
+          "ITA_SWISS_FID_ART8" -> "Art. 8",
+          "ITA_SWISS_FID_ART9" -> "Art. 9"
+        ))
+      ),
+      form3.group(form("tournamentType.itaSwissRounds"), "Numero turni", half = true)(
+        form3.input(_)(tpe := "number", min := 1, max := 99)
+      )
+    )
+  )
   def startPosition(v: Variant) =
     form3.group(form("position_" + v.key), trans.startPosition(), klass = "position position-" + v.key)(
       views.html.tournament.form.startingPosition(_, v)
