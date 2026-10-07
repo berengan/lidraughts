@@ -121,6 +121,15 @@ final class Env(
               started.games.foreach(game => socketMap.tell(tour.id, actorApi.StartGame(game)))
             }.void
           }
+      },
+    startItaSwiss = tour =>
+      itaswiss.CompetitionNumberService.assign(tour).flatMap { state =>
+        val startedTour = tour.copy(itaSwiss = Some(state))
+        cached.ranking(startedTour).flatMap { ranking =>
+          itaSwissRoundService.startFirstRound(startedTour, ranking).map { started =>
+            started.games.foreach(game => socketMap.tell(tour.id, actorApi.StartGame(game)))
+          }.void
+        }
       }
   )
 
