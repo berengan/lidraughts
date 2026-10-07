@@ -58,6 +58,29 @@ class ItalianTest extends Specification {
       destinations(sit, 22) must not contain 15
     }
 
+    "prefer the capture that takes the greatest number of pieces" in {
+      val sit = situation(White,
+        22 -> (White - King),
+        17 -> (Black - Man),
+        18 -> (Black - Man),
+        11 -> (Black - Man)
+      )
+
+      val moves = sit.validMoves.getOrElse(pos(22), Nil)
+      moves must not beEmpty
+      moves.forall(_.taken.exists(_.length == 2)) must beTrue
+    }
+
+    "prefer capturing a king when otherwise equal" in {
+      val sit = situation(White,
+        22 -> (White - King),
+        17 -> (Black - King),
+        18 -> (Black - Man)
+      )
+
+      destinations(sit, 22) must_== List(13)
+    }
+
     "prefer a king capture over a man capture when capture lengths are equal" in {
       val sit = situation(White,
         22 -> (White - Man),
