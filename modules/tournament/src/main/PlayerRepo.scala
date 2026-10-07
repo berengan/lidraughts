@@ -206,6 +206,14 @@ object PlayerRepo {
       "uid", (selectTour(tourId) ++ selectActive).some
     )
 
+  private[tournament] def setScore(tourId: Tournament.ID, userId: User.ID, score: Int): Funit =
+    find(tourId, userId).flatMap {
+      case None => funit
+      case Some(player) =>
+        val updated = player.copy(score = score)
+        coll.update(selectId(player.id), $set("s" -> score, "m" -> updated.magicScore)).void
+    }
+
   def winner(tourId: Tournament.ID): Fu[Option[Player]] =
     coll.find(selectTour(tourId)).sort(bestSort).uno[Player]
 
