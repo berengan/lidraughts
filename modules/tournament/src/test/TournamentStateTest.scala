@@ -69,5 +69,19 @@ class TournamentStateTest extends Specification {
 
       state.currentRound.map(_.pairingStartNumber) must beSome(5)
     }
+
+    "not be finished merely because the last round was generated" in {
+      val state = TournamentState(Format.Art2, roundCount = 1)
+        .withCompetitionPlayers(List(
+          CompetitionPlayer(1, "u1"),
+          CompetitionPlayer(2, "u2")
+        ))
+        .append(Round(1, 1, None, List(Pairing(1, 2)), Nil, Nil))
+
+      state.allRoundsGenerated must beTrue
+      state.finished must beFalse
+      state.canGenerateNextRound must beFalse
+      state.complete(1).finished must beTrue
+    }
   }
 }
