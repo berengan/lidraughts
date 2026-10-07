@@ -231,7 +231,13 @@ object ItalianOpeningTable {
     for {
       fromPos <- Pos64.posAt(from)
       toPos <- Pos64.posAt(to)
-      direction <- variant.Standard.moveDirsAll.find(dir => dir._2(fromPos).flatMap(dir._2).contains(toPos))
-      middle <- direction._2(fromPos)
+      middle <- List(
+        fromPos.moveUpLeft,
+        fromPos.moveUpRight,
+        fromPos.moveDownLeft,
+        fromPos.moveDownRight
+      ).flatten.find { pos =>
+        List(pos.moveUpLeft, pos.moveUpRight, pos.moveDownLeft, pos.moveDownRight).flatten.contains(toPos)
+      }
     } yield middle.fieldNumber
 }
