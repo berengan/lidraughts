@@ -100,6 +100,21 @@ class ItalianTest extends Specification {
       destinations(sit, 22) must_== List(13)
     }
 
+    "prefer kings earlier across the whole capture sequence" in {
+      val sit = situation(
+        White,
+        2 -> (White - King),
+        6 -> (Black - King),
+        14 -> (Black - King),
+        7 -> (Black - Man),
+        15 -> (Black - Man)
+      )
+
+      val moves = sit.validMoves.getOrElse(pos(2), Nil)
+      moves must haveSize(1)
+      moves.head.taken.toList.flatten.reverse.map(_.fieldNumber) must_== List(6, 14, 15, 7)
+    }
+
     "prefer a king capture over a man capture when capture lengths are equal" in {
       val sit = situation(
         White,
