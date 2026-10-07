@@ -26,7 +26,8 @@ case class Actor(
     case Man => shortRangeMoves(board.variant.moveDirsColor(color))
     case King =>
       if (board.variant.frisianVariant && board.history.kingMoves(color) >= 3 && board.history.kingMoves.kingPos(color).fold(true)(_ == pos)) Nil
-      else longRangeMoves(board.variant.moveDirsAll)
+      else if (board.variant.kingMovesLongRange) longRangeMoves(board.variant.moveDirsAll)
+      else shortRangeMoves(board.variant.moveDirsAll)
     case _ => Nil
   }
 
