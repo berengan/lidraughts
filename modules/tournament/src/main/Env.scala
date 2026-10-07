@@ -111,7 +111,17 @@ final class Env(
     lightUserApi = userEnv.lightUserApi,
     proxyGame = proxyGame,
     completeItaSwissRound = tour =>
-      itaswiss.RoundLifecycle.completeCurrentIfFinished(tour).void
+      itaswiss.RoundLifecycle.completeCurrentIfFinished(tour).flatMap {
+        case None => funit
+        case Some(state) if state.finished => funit
+        case Some(state) =>
+          val updatedTour = tour.copy(itaSwiss = Some(state))
+          cached.ranking(updatedTour).flatMap { ranking =>
+            itaSwissRoundService.startNextRound(updatedTour, ranking).map { started =>
+              started.games.foreach(game => socketMap.tell(tour.id, actorApi.StartGame(game)))
+            }.void
+          }
+      }
   )
 
   lazy val crudApi = new crud.CrudApi(cached)
