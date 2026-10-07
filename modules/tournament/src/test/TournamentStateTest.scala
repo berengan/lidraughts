@@ -47,6 +47,22 @@ class TournamentStateTest extends Specification {
       state.withGameIds(1, List("g1")) must throwA[IllegalArgumentException]
     }
 
+    "persist the first withdrawal round and never move it later" in {
+      val state = TournamentState(Format.Art2, roundCount = 4)
+        .withCompetitionPlayers(List(CompetitionPlayer(1, "u1"), CompetitionPlayer(2, "u2")))
+
+      val retired = state.retire("u2", 2)
+      retired.retiredAt must_== Map(2 -> 2)
+      retired.retire("u2", 3).retiredAt must_== Map(2 -> 2)
+    }
+
+    "reject retirement of a player outside the competition draw" in {
+      val state = TournamentState(Format.Art2, roundCount = 4)
+        .withCompetitionPlayers(List(CompetitionPlayer(1, "u1"), CompetitionPlayer(2, "u2")))
+
+      state.retire("other", 2) must throwA[RuntimeException]
+    }
+
     "keep pairing_start_number as round state" in {
       val state = TournamentState(Format.Art8, roundCount = 4)
         .append(Round(1, 5, None, Nil, List(Rest(5, RestType.RM)), Nil))
