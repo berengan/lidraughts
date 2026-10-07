@@ -53,6 +53,7 @@ private[tournament] object BSONHandlers {
       pairings = doc.getAs[List[Pairing]]("pairings").getOrElse(Nil),
       rests = doc.getAs[List[Rest]]("rests").getOrElse(Nil),
       retired = doc.getAs[List[Int]]("retired").getOrElse(Nil),
+      gameIds = doc.getAs[List[String]]("gameIds").getOrElse(Nil),
       complete = doc.getAs[Boolean]("complete").getOrElse(false)
     )
     def write(round: Round) = BSONDocument(
@@ -65,6 +66,7 @@ private[tournament] object BSONHandlers {
       "pairings" -> round.pairings,
       "rests" -> round.rests,
       "retired" -> round.retired,
+      "gameIds" -> round.gameIds,
       "complete" -> round.complete
     )
   }
