@@ -4,13 +4,23 @@ import scala.concurrent.duration._
 
 import lidraughts.game.{ Game, Player => GamePlayer, GameRepo, PovRef, Source, PerfPicker }
 import lidraughts.user.User
+import draughts.StartingPosition
 
 final class AutoPairing(
     duelStore: DuelStore,
     onStart: Game.ID => Unit
 ) {
 
-  def apply(tour: Tournament, pairing: Pairing, usersMap: Map[User.ID, User], ranking: Ranking): Fu[Game] = {
+  def apply(tour: Tournament, pairing: Pairing, usersMap: Map[User.ID, User], ranking: Ranking): Fu[Game] =
+    apply(tour, pairing, usersMap, ranking, none)
+
+  private[tournament] def apply(
+      tour: Tournament,
+      pairing: Pairing,
+      usersMap: Map[User.ID, User],
+      ranking: Ranking,
+      roundOpening: Option[StartingPosition]
+  ): Fu[Game] = {
     val user1 = usersMap get pairing.user1 err s"Missing pairing user1 $pairing"
     val user2 = usersMap get pairing.user2 err s"Missing pairing user2 $pairing"
     val clock = tour.clock.toClock
@@ -20,9 +30,13 @@ final class AutoPairing(
       daysPerTurn = none
     )
     val variant = if (tour.variant.standard && !tour.position.initialStandard) draughts.variant.FromPosition else tour.variant
-    val opening = tour.openingTable.fold(-1 -> tour.position) { table =>
-      if (tour.isThematicRandom) table.randomOpening
-      else -1 -> tour.position
+    val opening = roundOpening.fold {
+      tour.openingTable.fold(-1 -> tour.position) { table =>
+        if (tour.isThematicRandom) table.randomOpening
+        else -1 -> tour.position
+      }
+    } { position =>
+      position.code.toInt -> position
     }
     val game = Game.make(
       draughts = draughts.DraughtsGame(
