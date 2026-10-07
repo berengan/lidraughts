@@ -8,7 +8,7 @@ import play.api.data.validation.{ Constraint, Constraints }
 
 import draughts.Mode
 import draughts.StartingPosition
-import draughts.variant.{ Brazilian, Variant, Standard, Russian }
+import draughts.variant.{ Brazilian, Italian, Variant, Standard, Russian }
 import lidraughts.common.Form._
 import lidraughts.hub.lightTeam._
 import lidraughts.user.User
@@ -29,6 +29,7 @@ final class DataForm {
     positionStandard = Standard.initialFen.some,
     positionRussian = Russian.initialFen.some,
     positionBrazilian = Brazilian.initialFen.some,
+    positionItalian = Italian.initialFen.some,
     password = None,
     mode = none,
     rated = true.some,
@@ -52,6 +53,7 @@ final class DataForm {
     positionStandard = if (tour.variant.standard) tour.positionKey.some else Standard.initialFen.some,
     positionRussian = if (tour.variant.russian) tour.positionKey.some else Russian.initialFen.some,
     positionBrazilian = if (tour.variant.brazilian) tour.positionKey.some else Brazilian.initialFen.some,
+    positionItalian = if (tour.variant.italian) tour.positionKey.some else Italian.initialFen.some,
     mode = none,
     rated = tour.mode.rated.some,
     password = tour.password,
@@ -85,6 +87,7 @@ final class DataForm {
     "position_standard" -> optional(nonEmptyText),
     "position_russian" -> optional(nonEmptyText),
     "position_brazilian" -> optional(nonEmptyText),
+    "position_italian" -> optional(nonEmptyText),
     "mode" -> optional(number.verifying(Mode.all map (_.id) contains _)), // deprecated, use rated
     "rated" -> optional(boolean),
     "password" -> optional(cleanNonEmptyText),
@@ -131,7 +134,7 @@ object DataForm {
   val waitMinuteChoices = options(waitMinutes, "%d minute{s}")
   val waitMinuteDefault = 5
 
-  val validVariants = List(Standard, Frisian, Frysk, Antidraughts, Breakthrough, Russian, Brazilian)
+  val validVariants = List(Standard, Frisian, Frysk, Antidraughts, Breakthrough, Russian, Brazilian, Italian)
 
   def guessVariant(from: String): Option[Variant] = validVariants.find { v =>
     v.key == from || parseIntOption(from).exists(v.id ==)
@@ -149,6 +152,7 @@ private[tournament] case class TournamentSetup(
     positionStandard: Option[String], // tableKey | fen/random
     positionRussian: Option[String], // NOTE: Safe for variants without standard initial position (i.e. 64 squares)
     positionBrazilian: Option[String],
+    positionItalian: Option[String],
     mode: Option[Int], // deprecated, use rated
     rated: Option[Boolean],
     password: Option[String],
@@ -192,6 +196,7 @@ private[tournament] case class TournamentSetup(
     case draughts.variant.Standard => positionStandard
     case draughts.variant.Russian => positionRussian
     case draughts.variant.Brazilian => positionBrazilian
+    case draughts.variant.Italian => positionItalian
     case _ => none
   }
 
