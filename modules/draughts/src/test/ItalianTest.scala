@@ -236,5 +236,38 @@ class ItalianTest extends Specification {
         move.situationAfter.board(move.dest).exists(_.role == King)
       } must beTrue
     }
+
+    "load all official FID opening tables with BC membership in both B and C" in {
+      ItalianOpeningTable.openings must haveSize(174)
+      ItalianOpeningTable.general.positions must haveSize(174)
+      ItalianOpeningTable.tableA.positions must haveSize(40)
+      ItalianOpeningTable.tableB.positions must haveSize(126)
+      ItalianOpeningTable.tableC.positions must haveSize(83)
+      ItalianOpeningTable.tableD.positions must haveSize(8)
+      ItalianOpeningTable.openings.find(_.number == 1).map(_.moveTable) must beSome("BC")
+    }
+
+    "convert official FID square numbering to Pos64 numbering" in {
+      ItalianOpeningTable.lidraughtsField(1) must_== 4
+      ItalianOpeningTable.lidraughtsField(4) must_== 1
+      ItalianOpeningTable.lidraughtsField(21) must_== 24
+      ItalianOpeningTable.lidraughtsField(26) must_== 27
+      ItalianOpeningTable.lidraughtsField(32) must_== 29
+    }
+
+    "replay all 174 official FID openings as legal Italian moves" in {
+      ItalianOpeningTable.openings.foreach { opening =>
+        var sit = Situation(Board(Italian.pieces, DraughtsHistory(), Italian), White)
+        opening.moves.split(' ').foreach { token =>
+          val fields = token.split('-').map(_.toInt)
+          val from = ItalianOpeningTable.lidraughtsField(fields(0))
+          val to = ItalianOpeningTable.lidraughtsField(fields(1))
+          sit = play(sit, from, to)
+        }
+        format.Forsyth.>>(sit) must_== opening.fen
+      }
+      success
+    }
+
   }
 }
