@@ -169,8 +169,10 @@ abstract class Variant private[variant] (
                           extraCaptsCache = scala.collection.mutable.LongMap.empty[Int].some
                         }
                       }
+                      val endsOnPromotion =
+                        captureEndsOnPromotion && actor.piece.role == Man && promotablePos(landingPos, actor.color)
                       if (newCaptureValue == bestCaptureValue) {
-                        if (finalSquare)
+                        if (finalSquare || endsOnPromotion)
                           buf += actor.move(landingPos, boardAfter.withoutGhosts, newSquares, newTaken)
                         else
                           buf += actor.move(destPos.getOrElse(landingPos), destBoard.getOrElse(boardAfter), newSquares, newTaken)
@@ -179,7 +181,7 @@ abstract class Variant private[variant] (
                       val newDest = if (destPos.isDefined) destPos else landingPos.some
                       val newBoard = if (destBoard.isDefined) destBoard else boardAfter.some
                       var maxExtraCapts = 0
-                      if (!(captureEndsOnPromotion && actor.piece.role == Man && promotablePos(landingPos, actor.color))) captureDirsFor(actor).foreach {
+                      if (!endsOnPromotion) captureDirsFor(actor).foreach {
                         captDir =>
                           if (captDir._1 != opposite) {
                             val extraCapts = walkCaptures(captDir, boardAfter, landingPos, newDest, newBoard, newSquares, newTaken, newCaptureValue) - newCaptureValue
