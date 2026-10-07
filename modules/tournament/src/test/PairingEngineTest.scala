@@ -167,7 +167,7 @@ class PairingEngineTest extends Specification {
       result.pairingStartNumber must_== 6
     }
 
-    "classify a rest as RM when all withdrawn opponents were already played" in {
+    "classify the Kosmos withdrawal rest as RR, not RM" in {
       val history = RoundHistory(
         pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
         rests = Nil
@@ -182,9 +182,35 @@ class PairingEngineTest extends Specification {
         retiredAt = Map(2 -> 1)
       ))
 
-      result.rests.forall { rest =>
-        if (rest.player == 1) rest.restType == RestType.RM else true
-      } must beTrue
+      result.rests must_== List(Rest(6, RestType.RR))
+    }
+
+    "match Kosmos v15.81 ART9 with simultaneous RT and withdrawal RR" in {
+      val history = RoundHistory(
+        pairings = List(Pairing(1, 2), Pairing(3, 4), Pairing(5, 6)),
+        rests = (7 to 15).map(Rest(_, RestType.RT)).toList
+      )
+      val result = PairingEngine.generate(State(
+        playerCount = 15,
+        round = 2,
+        roundCount = 7,
+        scores = Map(
+          1 -> 2d, 2 -> 0d, 3 -> 1d, 4 -> 1d, 5 -> 0d, 6 -> 2d,
+          7 -> 0d, 8 -> 0d, 9 -> 0d, 10 -> 0d, 11 -> 0d, 12 -> 0d,
+          13 -> 0d, 14 -> 0d, 15 -> 0d
+        ),
+        history = Map(1 -> history),
+        format = Format.Art9,
+        retiredAt = Map(15 -> 1)
+      ))
+
+      result.pairings must_== List(
+        Pairing(6, 3), Pairing(4, 5), Pairing(7, 8),
+        Pairing(9, 10), Pairing(11, 12), Pairing(13, 14)
+      )
+      result.rests must_== List(Rest(1, RestType.RT), Rest(2, RestType.RR))
+      result.retired must_== List(15)
+      result.pairingStartNumber must_== 6
     }
 
     "never assign a second RM to a player who already received RM or RR" in {
