@@ -141,7 +141,7 @@ abstract class Variant private[variant] (
       else walkDir._2(curPos) match {
         case Some(nextPos) =>
           curBoard(nextPos) match {
-            case Some(captPiece) if captPiece.isNot(actor.color) && !captPiece.isGhost =>
+            case Some(captPiece) if canCapture(actor, captPiece) =>
               walkDir._2(nextPos) match {
                 case Some(landingPos) if curBoard(landingPos).isEmpty =>
                   val boardAfter = curBoard.takingUnsafe(curPos, landingPos, actor.piece, nextPos, captPiece)
@@ -172,7 +172,7 @@ abstract class Variant private[variant] (
                       val newDest = if (destPos.isDefined) destPos else landingPos.some
                       val newBoard = if (destBoard.isDefined) destBoard else boardAfter.some
                       var maxExtraCapts = 0
-                      captureDirs.foreach {
+                      captureDirsFor(actor).foreach {
                         captDir =>
                           if (captDir._1 != opposite) {
                             val extraCapts = walkCaptures(captDir, boardAfter, landingPos, newDest, newBoard, newSquares, newTaken, newCaptureValue) - newCaptureValue
@@ -193,7 +193,7 @@ abstract class Variant private[variant] (
         case _ => captureValue
       }
 
-    captureDirs.foreach {
+    captureDirsFor(actor).foreach {
       walkCaptures(_, actor.board, actor.pos, None, None, Nil, Nil, 0)
     }
 
@@ -222,7 +222,7 @@ abstract class Variant private[variant] (
           curBoard(nextPos) match {
             case None =>
               walkUntilCapture(walkDir, curBoard.moveUnsafe(curPos, nextPos, actor.piece), nextPos, destPos, destBoard, allSquares, allTaken, captureValue)
-            case Some(captPiece) if captPiece.isNot(actor.color) && !captPiece.isGhost =>
+            case Some(captPiece) if canCapture(actor, captPiece) =>
               walkDir._2(nextPos) match {
                 case Some(landingPos) if curBoard(landingPos).isEmpty =>
                   val boardAfter = curBoard.takingUnsafe(curPos, landingPos, actor.piece, nextPos, captPiece)
@@ -260,7 +260,7 @@ abstract class Variant private[variant] (
           val newDest = if (destPos.isDefined) destPos else curPos.some
           val newBoard = if (destBoard.isDefined) destBoard else curBoard.some
           var maxExtraCapts = 0
-          captureDirs.foreach { captDir =>
+          captureDirsFor(actor).foreach { captDir =>
             if (captDir._1 != opposite) {
               val extraCapture = walkUntilCapture(captDir, curBoard, curPos, newDest, newBoard, newSquares, newTaken, newCaptureValue) - newCaptureValue
               if (extraCapture > maxExtraCapts)
@@ -282,7 +282,7 @@ abstract class Variant private[variant] (
       }
     }
 
-    captureDirs.foreach {
+    captureDirsFor(actor).foreach {
       walkUntilCapture(_, actor.board, actor.pos, None, None, Nil, Nil, 0)
     }
 
@@ -382,7 +382,7 @@ object Variant {
     Left
   )
 
-  val all = List(Standard, Frisian, Frysk, Antidraughts, Breakthrough, Russian, Brazilian, FromPosition)
+  val all = List(Standard, Frisian, Frysk, Antidraughts, Breakthrough, Russian, Brazilian, Italian, FromPosition)
   val byId = all map { v => (v.id, v) } toMap
   val byKey = all map { v => (v.key, v) } toMap
 
