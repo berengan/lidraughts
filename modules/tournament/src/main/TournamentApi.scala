@@ -267,18 +267,6 @@ final class TournamentApi(
     }
   }
 
-  private[tournament] def finishItaSwissTournament(tour: Tournament): Funit = {
-    require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
-    TournamentRepo.setStatus(tour.id, Status.Finished) >>
-      PairingRepo.removePlaying(tour.id) map { _ =>
-        clearJsonViewCache(tour.id)
-        socketReload(tour.id)
-        publish()
-        clearWinnersCache(tour)
-        duelStore.remove(tour)
-      }
-  }
-
   def kill(tour: Tournament): Unit = {
     if (tour.isStarted) finish(tour)
     else if (tour.isCreated) wipe(tour)
