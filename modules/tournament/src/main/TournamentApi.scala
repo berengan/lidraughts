@@ -43,8 +43,7 @@ final class TournamentApi(
     lightUserApi: lidraughts.user.LightUserApi,
     proxyGame: Game.ID => Fu[Option[Game]],
     completeItaSwissRound: Tournament => Funit,
-    startItaSwiss: Tournament => Funit,
-    finishItaSwiss: Tournament => Funit
+    startItaSwiss: Tournament => Funit
 ) {
 
   private val bus = system.lidraughtsBus
