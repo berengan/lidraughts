@@ -23,7 +23,8 @@ class ItalianTest extends Specification {
   "Italian draughts" should {
 
     "use short-range kings" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - King),
         1 -> (Black - Man)
       )
@@ -32,7 +33,8 @@ class ItalianTest extends Specification {
     }
 
     "allow men to capture forward" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - Man),
         18 -> (Black - Man)
       )
@@ -41,7 +43,8 @@ class ItalianTest extends Specification {
     }
 
     "not allow men to capture backwards" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - Man),
         26 -> (Black - Man)
       )
@@ -50,7 +53,8 @@ class ItalianTest extends Specification {
     }
 
     "not allow a man to capture a king" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - Man),
         18 -> (Black - King)
       )
@@ -59,7 +63,8 @@ class ItalianTest extends Specification {
     }
 
     "prefer the capture that takes the greatest number of pieces" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - King),
         17 -> (Black - Man),
         18 -> (Black - Man),
@@ -67,12 +72,13 @@ class ItalianTest extends Specification {
       )
 
       val moves = sit.validMoves.getOrElse(pos(22), Nil)
-      moves must not beEmpty
+      moves must not be empty
       moves.forall(_.taken.exists(_.length == 2)) must beTrue
     }
 
     "prefer capturing a king when otherwise equal" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - King),
         17 -> (Black - King),
         18 -> (Black - Man)
@@ -82,7 +88,8 @@ class ItalianTest extends Specification {
     }
 
     "prefer the line that captures a king earlier when value is otherwise equal" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - King),
         17 -> (Black - King),
         9 -> (Black - Man),
@@ -94,7 +101,8 @@ class ItalianTest extends Specification {
     }
 
     "prefer a king capture over a man capture when capture lengths are equal" in {
-      val sit = situation(White,
+      val sit = situation(
+        White,
         22 -> (White - Man),
         24 -> (White - King),
         18 -> (Black - Man),
@@ -102,6 +110,31 @@ class ItalianTest extends Specification {
       )
 
       sit.validMoves.keySet must_== Set(pos(24))
+    }
+
+    "promote a man that reaches the opponent base" in {
+      val sit = situation(
+        White,
+        5 -> (White - Man),
+        32 -> (Black - Man)
+      )
+
+      val move = sit.validMoves(pos(5)).find(_.dest == pos(1)).get
+      move.situationAfter.board.pieceAt(pos(1)).map(_.role) must beSome(King)
+    }
+
+    "stop a capture when a man reaches the opponent base" in {
+      val sit = situation(
+        White,
+        10 -> (White - Man),
+        6 -> (Black - Man),
+        7 -> (Black - Man)
+      )
+
+      destinations(sit, 10) must_== List(3)
+      val move = sit.validMoves(pos(10)).head
+      move.taken.map(_.length) must beSome(1)
+      move.situationAfter.board.pieceAt(pos(3)).map(_.role) must beSome(King)
     }
   }
 }
