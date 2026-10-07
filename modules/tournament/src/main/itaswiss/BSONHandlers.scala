@@ -44,9 +44,10 @@ private[tournament] object BSONHandlers {
       pairingStartNumber = doc.getAs[Int]("pairingStartNumber").get,
       opening = doc.getAs[String]("openingFen").map { fen =>
         StartingPosition(
-          fen = fen,
           code = doc.getAs[String]("openingCode").getOrElse(""),
-          name = doc.getAs[String]("openingName").getOrElse("")
+          fen = fen,
+          moves = doc.getAs[String]("openingMoves").getOrElse(""),
+          name = doc.getAs[String]("openingName")
         )
       },
       pairings = doc.getAs[List[Pairing]]("pairings").getOrElse(Nil),
@@ -59,7 +60,8 @@ private[tournament] object BSONHandlers {
       "pairingStartNumber" -> round.pairingStartNumber,
       "openingFen" -> round.opening.map(_.fen),
       "openingCode" -> round.opening.map(_.code),
-      "openingName" -> round.opening.map(_.name),
+      "openingMoves" -> round.opening.map(_.moves),
+      "openingName" -> round.opening.flatMap(_.name),
       "pairings" -> round.pairings,
       "rests" -> round.rests,
       "retired" -> round.retired,
