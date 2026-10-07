@@ -89,6 +89,9 @@ case object Italian extends Variant(
     }(breakOut)
   }
 
+  override def validMovesFrom(situation: Situation, pos: Pos, finalSquare: Boolean = false): List[Move] =
+    validMoves(situation, finalSquare).getOrElse(pos, Nil)
+
   private def captureLength(capture: (Actor, Move)): Int =
     capture._2.taken.fold(0)(_.length)
 
