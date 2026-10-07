@@ -388,6 +388,7 @@ final class TournamentApi(
         PlayerRepo.remove(tour.id, userId) >> updateNbPlayers(tour.id) >>- socketReload(tour.id) >>- publish()
       case tour if tour.isStarted => for {
         _ <- PlayerRepo.withdraw(tour.id, userId)
+        _ <- if (tour.system == System.ItaSwiss) itaswiss.RetirementService.retire(tour, userId).void else funit
         pausable <- if (isPause) cached.ranking(tour).map { _ get userId exists (7>) } else fuccess(isStalling)
       } yield {
         if (pausable) pause.add(userId, tour)
