@@ -2,6 +2,7 @@ package lidraughts.setup
 
 import draughts.format.FEN
 import draughts.variant.Variant
+import lidraughts.common.FederationConfig
 import lidraughts.lobby.Color
 import lidraughts.user.UserContext
 import play.api.data._
@@ -48,6 +49,7 @@ private[setup] final class FormFactory(
     )(AiConfig.<<)(_.>>)
       .verifying("invalidFen", _.validFen)
       .verifying("tooManyKings", _.validKingCount)
+      .verifying("Variant not enabled for computer games", c => Config.aiVariants.contains(c.variant.id))
   )
 
   def aiConfig(implicit ctx: UserContext): Fu[AiConfig] = savedConfig map (_.ai)
@@ -78,6 +80,8 @@ private[setup] final class FormFactory(
     )(FriendConfig.<<)(_.>>)
       .verifying("Invalid clock", _.validClock)
       .verifying("invalidFen", _.validFen)
+      .verifying("Variant not enabled for challenges", c =>
+        FederationConfig.current.allowsGameVariant(c.variant, c.fenVariant))
   )
 
   def friendConfig(implicit ctx: UserContext): Fu[FriendConfig] = savedConfig map (_.friend)
@@ -98,6 +102,8 @@ private[setup] final class FormFactory(
     )(HookConfig.<<)(_.>>)
       .verifying("Invalid clock", _.validClock)
       .verifying("Can't create rated unlimited in lobby", _.noRatedUnlimited)
+      .verifying("Variant not enabled for lobby games", c =>
+        FederationConfig.current.allowsGameVariant(c.variant))
   )
 
   def hookConfig(implicit ctx: UserContext): Fu[HookConfig] = savedConfig map (_.hook)
@@ -106,7 +112,8 @@ private[setup] final class FormFactory(
 
   lazy val api = Form(
     mapping(
-      "variant" -> optional(text.verifying(Variant.byKey.contains _)),
+      "variant" -> optional(text.verifying(key =>
+        Variant.byKey.get(key).exists(FederationConfig.current.allowsGameVariant(_)))),
       "clock" -> optional(mapping(
         "limit" -> number.verifying(ApiConfig.clockLimitSeconds.contains _),
         "increment" -> increment
@@ -121,6 +128,8 @@ private[setup] final class FormFactory(
     )(ApiConfig.<<)(_.>>)
       .verifying("A custom fen is not allowed for this variant", _.validVariantForFen)
       .verifying("invalidFen", _.validFen)
+      .verifying("Variant not enabled for API challenges", c =>
+        FederationConfig.current.allowsGameVariant(c.variant))
   )
 
   def savedConfig(implicit ctx: UserContext): Fu[UserConfig] =

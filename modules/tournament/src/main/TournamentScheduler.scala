@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 import actorApi._
 import draughts.StartingPosition
 import Schedule.offsetCET
+import lidraughts.common.FederationConfig
 
 private final class TournamentScheduler private (api: TournamentApi) extends Actor {
 
@@ -323,7 +324,7 @@ Thank you all, you rock!"""
 
       ).flatten
 
-      nextPlans.map { plan =>
+      nextPlans.filter(_.schedule.allowedByFederation(FederationConfig.current)).map { plan =>
         plan.copy(schedule = Schedule addCondition plan.schedule)
       }.foldLeft(List[Plan]()) {
         case (plans, p) if p.schedule.at.isBeforeNow => plans

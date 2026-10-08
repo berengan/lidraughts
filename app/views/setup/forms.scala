@@ -23,7 +23,9 @@ object forms {
     routes.Setup.hook("uid-placeholder")
   ) {
       frag(
-        renderVariant(form, translatedVariantChoicesWithVariants),
+        renderVariant(form, translatedEnabledGameChoices(
+          translatedVariantChoicesWithVariants, lidraughts.setup.Config.variantsWithVariants
+        )),
         renderTimeMode(form, lidraughts.setup.HookConfig),
         ctx.isAuth option frag(
           div(cls := "mode_choice buttons")(
@@ -67,7 +69,9 @@ object forms {
   def ai(form: Form[_], ratings: Map[Int, Int], validFen: Option[lidraughts.setup.ValidFen])(implicit ctx: Context) =
     layout(form, "ai", trans.playWithTheMachine(), routes.Setup.ai) {
       frag(
-        renderVariant(form, translatedAiVariantChoices),
+        renderVariant(form, translatedEnabledGameChoices(
+          translatedAiVariantChoices, lidraughts.setup.Config.aiVariants
+        )),
         fenInput(form, true, true, validFen, none),
         renderTimeMode(form, lidraughts.setup.AiConfig),
         if (ctx.blind) frag(
@@ -108,8 +112,12 @@ object forms {
         user.map { u =>
           userLink(u, cssClass = "target".some)
         },
-        renderVariant(form, translatedVariantChoicesWithVariantsAndFen),
-        fenInput(form, false, false, validFen, translatedFromPositionVariantChoices.some),
+        renderVariant(form, translatedEnabledGameChoices(
+          translatedVariantChoicesWithVariantsAndFen, lidraughts.setup.Config.variantsWithFenAndVariants
+        )),
+        fenInput(form, false, false, validFen, translatedEnabledGameChoices(
+          translatedFromPositionVariantChoices, lidraughts.setup.Config.fromPositionVariants
+        ).some),
         renderTimeMode(form, lidraughts.setup.FriendConfig),
         renderMicroMatch(form),
         ctx.isAuth option div(cls := "mode_choice buttons")(

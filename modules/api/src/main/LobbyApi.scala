@@ -3,6 +3,7 @@ package lidraughts.api
 import play.api.libs.json.{ Json, JsObject, JsArray }
 
 import lidraughts.game.Pov
+import lidraughts.common.FederationConfig
 import lidraughts.game.JsonView.boardSizeWriter
 import lidraughts.lobby.SeekApi
 import lidraughts.pool.JsonView.poolConfigJsonWriter
@@ -17,7 +18,10 @@ final class LobbyApi(
     urgentGames: lidraughts.user.User => Fu[List[Pov]]
 ) {
 
-  val poolsJson = Json toJson pools
+  val poolsJson = Json toJson (
+    if (FederationConfig.current.allowsGameVariant(draughts.variant.Standard)) pools
+    else Nil
+  )
 
   def apply(implicit ctx: Context): Fu[(JsObject, List[Pov])] =
     ctx.me.fold(seekApi.forAnon)(seekApi.forUser) zip

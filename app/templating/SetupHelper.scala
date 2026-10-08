@@ -141,7 +141,7 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
   private def fromPositionVariantTupleId(v: Variant)(implicit ctx: Context) =
     variantTuple(encodeId, v => fromPositionVariantName(v.name))(v)
 
-  private def variantTuple(encode: Variant => String, variantName: Variant => String = _.name)(variant: Variant)(implicit ctx: Context) =
+  private def variantTuple(encode: Variant => String, variantName: Variant => String = v => if (v.italian) "Dama Italiana" else v.name)(variant: Variant)(implicit ctx: Context) =
     (encode(variant), variantName(variant), variantTitle(variant).some)
 
   private def fromPositionVariantName(variantName: String) =
@@ -175,6 +175,10 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
         policy.enabledVariants.exists(_.id.toString == id) || existing.exists(_.id.toString == id)
     }
   }
+
+  def translatedEnabledGameChoices(choices: List[SelectChoice], allowedIds: List[Int]): List[SelectChoice] =
+    if (!FederationConfig.current.enabled) choices
+    else choices.filter { case (id, _, _) => allowedIds.exists(_.toString == id) }
 
   def translatedVariantChoicesWithFen(implicit ctx: Context) =
     translatedVariantChoices(ctx) :+

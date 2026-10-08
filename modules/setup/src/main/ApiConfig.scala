@@ -7,6 +7,7 @@ import draughts.Clock
 import draughts.format.{ FEN, Forsyth }
 import draughts.variant.FromPosition
 import lidraughts.lobby.Color
+import lidraughts.common.FederationConfig
 import lidraughts.rating.PerfType
 import lidraughts.game.PerfPicker
 
@@ -52,7 +53,8 @@ object ApiConfig extends BaseHumanConfig {
 
   def <<(v: Option[String], cl: Option[Clock.Config], d: Option[Int], r: Boolean, c: Option[String], pos: Option[String], opp: Option[String], start: Option[DateTime], mm: Option[Boolean]) =
     new ApiConfig(
-      variant = draughts.variant.Variant.orDefault(~v),
+      variant = v.flatMap(draughts.variant.Variant.apply)
+        .getOrElse(FederationConfig.current.defaultVariant),
       clock = cl.filter(c => c.limitSeconds > 0 || c.hasIncrement),
       days = d,
       rated = r,

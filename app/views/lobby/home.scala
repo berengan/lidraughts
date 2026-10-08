@@ -5,7 +5,9 @@ import play.api.libs.json.{ Json, JsObject }
 import lidraughts.api.Context
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
-import lidraughts.common.HTTPRequest
+import lidraughts.common.{ HTTPRequest, FederationConfig }
+import draughts.variant.Italian
+import lidraughts.setup.Config
 import lidraughts.common.String.html.safeJsonValue
 import lidraughts.game.Pov
 
@@ -74,12 +76,14 @@ object home {
             a(href := routes.Setup.hookForm, cls := List(
               "button button-metal config_hook" -> true,
               "disabled" -> (playban.isDefined || currentGame.isDefined || ctx.isBot)
-            ), trans.createAGame()),
+            ), if (FederationConfig.current.enabled && FederationConfig.current.defaultVariant == Italian)
+              span("Gioca a Dama Italiana") else trans.createAGame()),
             a(href := routes.Setup.friendForm(none), cls := List(
               "button button-metal config_friend" -> true,
               "disabled" -> currentGame.isDefined
-            ), trans.playWithAFriend()),
-            a(href := routes.Setup.aiForm, cls := List(
+            ), if (FederationConfig.current.enabled && FederationConfig.current.defaultVariant == Italian)
+              span("Sfida a Dama Italiana") else trans.playWithAFriend()),
+            Config.aiVariants.nonEmpty option a(href := routes.Setup.aiForm, cls := List(
               "button button-metal config_ai" -> true,
               "disabled" -> currentGame.isDefined
             ), trans.playWithTheMachine())
@@ -104,7 +108,11 @@ object home {
             events.map(bits.spotlight),
             relays.map(bits.spotlight),
             !ctx.isBot option frag(
-              lidraughts.tournament.Spotlight.select(tours, ctx.me, (3 - events.size - relays.size) atLeast 1) map {
+              lidraughts.tournament.Spotlight.select(
+                tours.filter(t => FederationConfig.current.allowsTournament(t.system.key, t.variant)),
+                ctx.me,
+                (3 - events.size - relays.size) atLeast 1
+              ) map {
                 views.html.tournament.homepageSpotlight(_)
               },
               swisses.take(1) map views.html.swiss.bits.homepageSpotlight,
@@ -139,7 +147,10 @@ object home {
             span(cls := "text")(p.color.fold(trans.whitePlays, trans.blackPlays)())
           )
         },
-        ctx.noBot option bits.underboards(tours, simuls, leaderboard, tournamentWinners),
+        ctx.noBot option bits.underboards(
+          tours.filter(t => FederationConfig.current.allowsTournament(t.system.key, t.variant)),
+          simuls, leaderboard, tournamentWinners
+        ),
         ctx.noKid option div(cls := "lobby__forum lobby__box", dataUrl := routes.ForumPost.recent)(
           div(cls := "lobby__box__top")(
             h2(cls := "title text", dataIcon := "d")(trans.latestForumPosts()),

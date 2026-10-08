@@ -5,6 +5,8 @@ import views._
 
 object Page extends LidraughtsController {
 
+  private def federation = lidraughts.common.FederationConfig.current
+
   val tos = helpBookmark("tos")
   val thanks = helpBookmark("thanks")
   val help = helpBookmark("help")
@@ -36,7 +38,7 @@ object Page extends LidraughtsController {
       html = fuccess {
         views.html.site.variant.home()
       },
-      api = _ => Ok(JsArray(draughts.variant.Variant.all.map { v =>
+      api = _ => Ok(JsArray(draughts.variant.Variant.all.filter(federation.allowsVariant).map { v =>
         Json.obj(
           "id" -> v.id,
           "key" -> v.key,
@@ -47,7 +49,8 @@ object Page extends LidraughtsController {
   }
 
   def variant(key: String) = Open { implicit ctx =>
-    (for {
+    if (key == "italian") Ok(views.html.site.variant.italian()).fuccess
+    else (for {
       variant <- draughts.variant.Variant.byKey get key
       perfType <- lidraughts.rating.PerfType.byVariant(variant).fold(lidraughts.rating.PerfType.checkStandard(variant))(x => x.some)
     } yield OptionOk(Prismic.getVariant(variant, ctx.lang)) {

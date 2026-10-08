@@ -4,6 +4,7 @@ import draughts.StartingPosition
 import draughts.variant.Variant
 import org.joda.time.{ DateTime, DateTimeZone, DateTimeConstants => dt }
 
+import lidraughts.common.FederationConfig
 import lidraughts.rating.PerfType
 
 case class Schedule(
@@ -27,6 +28,11 @@ case class Schedule(
     case Schedule.Freq.Hourly => s"${variant.name} ${speed.toString}"
     case _ => s"${freq.toString} ${variant.name}"
   }
+
+  // All scheduled tournaments are Arena tournaments. In federation mode, only
+  // variants explicitly enabled for Arena may be scheduled.
+  def allowedByFederation(policy: FederationConfig): Boolean =
+    policy.allowsTournament(System.Arena.key, variant)
 
   def openingTable =
     (freq != Schedule.Freq.Shield && freq.isWeeklyOrBetter && (variant.russian || variant.brazilian)) ?? variant.openingTables.headOption
