@@ -234,7 +234,7 @@ class ItalianTest extends Specification {
       )
 
       val moves = sit.validMoves(pos(10))
-      moves.map(_.dest.fieldNumber).sorted must_== List(1, 3)
+      moves.map(m => fid(m.dest.fieldNumber)).sorted must_== List(1, 3)
       moves.map(_.taken.map(_.length).getOrElse(0)).sorted must_== List(1, 1)
       moves.forall { move =>
         move.taken.exists(_.length == 1) &&
