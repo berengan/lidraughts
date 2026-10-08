@@ -37,9 +37,9 @@ export function start(s: State, e: cg.MouchEvent): void {
   const bounds = s.dom.bounds(),
     bs = s.boardSize,
     position = util.eventPosition(e) as cg.NumberPair,
-    orig = board.getKeyAtDomPos(position, bs, board.whitePov(s), bounds),
+    orig = board.getKeyAtDomPos(position, bs, board.whitePov(s), bounds, s.flipFiles),
     // we clicked an unused field, but inside the board, so likely indending a piece interaction
-    unusedField = !orig && board.unusedFieldAtDomPos(position, bs, board.whitePov(s), bounds);
+    unusedField = !orig && board.unusedFieldAtDomPos(position, bs, board.whitePov(s), bounds, s.flipFiles);
   if (!orig && !unusedField) return;
 
   const piece = orig && s.pieces[orig];
@@ -68,7 +68,7 @@ export function start(s: State, e: cg.MouchEvent): void {
   const stillSelected = s.selected === orig;
   const element = pieceElementByKey(s, orig);
   if (piece && element && stillSelected && board.isDraggable(s, orig)) {
-    const squareBounds = computeSquareBounds(orig, bs, board.whitePov(s), bounds);
+    const squareBounds = computeSquareBounds(orig, bs, board.whitePov(s), bounds, s.flipFiles);
     s.draggable.current = {
       orig,
       origPos: util.key2pos(orig, bs),
@@ -91,7 +91,7 @@ export function start(s: State, e: cg.MouchEvent): void {
     const ghost = s.dom.elements.ghost;
     if (ghost) {
       ghost.className = 'ghost ' + pieceNameOf(piece);
-      util.translateAbs(ghost, util.posToTranslateAbs(bounds, bs)(util.key2pos(orig, bs), board.whitePov(s), 0));
+      util.translateAbs(ghost, util.posToTranslateAbs(bounds, bs, s.flipFiles)(util.key2pos(orig, bs), board.whitePov(s), 0));
     }
     processDrag(s);
   } else {
@@ -106,7 +106,7 @@ export function pieceCloseTo(s: State, pos: cg.NumberPair): boolean {
   bounds = s.dom.bounds(),
   radiusSq = Math.pow(bounds.width / 10, 2);
   for (let key in s.pieces) {
-    const squareBounds = computeSquareBounds(key as cg.Key, s.boardSize, asWhite, bounds),
+    const squareBounds = computeSquareBounds(key as cg.Key, s.boardSize, asWhite, bounds, s.flipFiles),
     center: cg.NumberPair = [
       squareBounds.left + squareBounds.width / 2,
       squareBounds.top + squareBounds.height / 2
@@ -126,7 +126,7 @@ export function dragNewPiece(s: State, piece: cg.Piece, e: cg.MouchEvent, force?
   const position = util.eventPosition(e) as cg.NumberPair,
     asWhite = board.whitePov(s),
     bounds = s.dom.bounds(),
-    squareBounds = computeSquareBounds(key, s.boardSize, asWhite, bounds);
+    squareBounds = computeSquareBounds(key, s.boardSize, asWhite, bounds, s.flipFiles);
   const rel: cg.NumberPair = [
     (asWhite ? -1 : s.boardSize[0]) * squareBounds.width + bounds.left,
     (!asWhite ? (s.boardSize[1] - 1) : 0) * squareBounds.height + bounds.top
@@ -177,7 +177,7 @@ function processDrag(s: State): void {
         ];
 
         // move piece
-        const translation = util.posToTranslateAbs(s.dom.bounds(), s.boardSize)(cur.origPos, board.whitePov(s), 0);
+        const translation = util.posToTranslateAbs(s.dom.bounds(), s.boardSize, s.flipFiles)(cur.origPos, board.whitePov(s), 0);
         translation[0] += cur.pos[0] + cur.dec[0];
         translation[1] += cur.pos[1] + cur.dec[1];
         util.translateAbs(cur.element, translation);
@@ -209,8 +209,8 @@ export function end(s: State, e: cg.MouchEvent): void {
   board.unsetPredrop(s);
   // touchend has no position; so use the last touchmove position instead
   const eventPos: cg.NumberPair = util.eventPosition(e) || cur.epos;
-  const dest = board.getKeyAtDomPos(eventPos, s.boardSize, board.whitePov(s), s.dom.bounds()),
-    unusedField = !dest && board.unusedFieldAtDomPos(eventPos, s.boardSize, board.whitePov(s), s.dom.bounds()),
+  const dest = board.getKeyAtDomPos(eventPos, s.boardSize, board.whitePov(s), s.dom.bounds(), s.flipFiles),
+    unusedField = !dest && board.unusedFieldAtDomPos(eventPos, s.boardSize, board.whitePov(s), s.dom.bounds(), s.flipFiles),
     isDragging = cur.started && cur.orig !== dest;
   if (dest && isDragging) {
     if (cur.newPiece) board.dropNewPiece(s, cur.orig, dest, cur.force);
@@ -261,7 +261,7 @@ function removeDragElements(s: State) {
   if (e.ghost) util.translateAway(e.ghost);
 }
 
-function computeSquareBounds(key: cg.Key, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect) {
+function computeSquareBounds(key: cg.Key, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect, flipFiles: boolean = false) {
 
   const pos = util.key2pos(key, boardSize),
     w = boardSize[0], h = boardSize[1];
@@ -271,7 +271,7 @@ function computeSquareBounds(key: cg.Key, boardSize: cg.BoardSize, asWhite: bool
   }
 
   return {
-    left: bounds.left + bounds.width * ((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0)) / w,
+    left: bounds.left + bounds.width * (flipFiles ? w - 1 - ((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0)) : ((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0))) / w,
     top: bounds.top + bounds.height * (pos[1] - 1) / h,
     width: bounds.width / w,
     height: bounds.height / h
