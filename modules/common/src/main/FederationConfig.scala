@@ -24,6 +24,15 @@ final case class FederationConfig(
 
   def allowsItaSwissFormat(format: String): Boolean =
     !enabled || itaSwissFormats.contains(format)
+
+  /** Validate the underlying variant for a custom-position game. */
+  def allowsGameVariant(variant: Variant, fenVariant: Option[Variant] = None): Boolean =
+    if (!enabled) true
+    else if (variant.fromPosition) {
+      val base = fenVariant.getOrElse(Standard)
+      Set[Variant](Standard, draughts.variant.Russian, draughts.variant.Brazilian).contains(base) &&
+        enabledVariants.contains(base)
+    } else enabledVariants.contains(variant)
 }
 
 object FederationConfig {

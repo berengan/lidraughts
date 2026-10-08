@@ -45,6 +45,22 @@ class FederationConfigTest extends Specification {
       policy.allowsTournament("itaSwiss", Italian) must beTrue
       policy.allowsTournament("itaSwiss", Standard) must beFalse
       policy.allowsItaSwissFormat("ITA_SWISS_FID_ART9") must beFalse
+      policy.allowsGameVariant(Italian) must beTrue
+      policy.allowsGameVariant(draughts.variant.Russian) must beFalse
+      policy.allowsGameVariant(draughts.variant.FromPosition) must beTrue
+      policy.allowsGameVariant(draughts.variant.FromPosition, Some(Italian)) must beFalse
+    }
+
+    "reject a custom position when its base variant is disabled" in {
+      val italianOnly = parse(sample.replace(
+        "enabled = [\"italian\", \"standard\"]",
+        "enabled = [\"italian\"]"
+      ).replace(
+        "arena.variants = [\"italian\", \"standard\"]",
+        "arena.variants = [\"italian\"]"
+      ))
+      italianOnly.allowsGameVariant(draughts.variant.FromPosition) must beFalse
+      italianOnly.allowsGameVariant(Italian) must beTrue
     }
 
     "reject unsupported systems" in {

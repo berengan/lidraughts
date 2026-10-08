@@ -2,6 +2,7 @@ package lidraughts.setup
 
 import draughts.{ DraughtsGame, Situation, Clock, Speed }
 import draughts.variant.{ FromPosition, Standard, Variant }
+import lidraughts.common.FederationConfig
 import draughts.format.FEN
 
 import lidraughts.game.Game
@@ -102,29 +103,45 @@ trait Positional { self: Config =>
 object Config extends BaseConfig
 
 trait BaseConfig {
-  val variants = List(draughts.variant.Standard.id)
-  val variantDefault = draughts.variant.Standard
+  private val federation = FederationConfig.current
 
-  val variantsWithFen = variants :+ FromPosition.id
-  val aiVariants = variants :+
-    draughts.variant.Frisian.id :+
-    draughts.variant.Frysk.id :+
-    draughts.variant.Antidraughts.id :+
-    draughts.variant.Breakthrough.id :+
-    draughts.variant.FromPosition.id
-  val fromPositionVariants = variants :+
-    draughts.variant.Russian.id :+
-    draughts.variant.Brazilian.id
+  val variants =
+    if (federation.enabled) federation.enabledVariants.map(_.id)
+    else List(Standard.id)
+
+  val variantDefault = federation.defaultVariant
+
+  val variantsWithFen =
+    if (federation.enabled) variants ::: (federation.allowsGameVariant(FromPosition) option FromPosition.id).toList
+    else variants :+ FromPosition.id
+
+  // The current computer engine has not been validated for Italian draughts.
+  private val legacyAiVariants = List(
+    Standard, draughts.variant.Frisian, draughts.variant.Frysk,
+    draughts.variant.Antidraughts, draughts.variant.Breakthrough, FromPosition
+  )
+  val aiVariants =
+    if (federation.enabled) legacyAiVariants.filter(federation.allowsGameVariant(_)).map(_.id)
+    else legacyAiVariants.map(_.id)
+
+  val fromPositionVariants =
+    if (federation.enabled)
+      List(Standard, draughts.variant.Russian, draughts.variant.Brazilian)
+        .filter(federation.allowsVariant).map(_.id)
+    else List(Standard.id, draughts.variant.Russian.id, draughts.variant.Brazilian.id)
+
   val variantsWithVariants =
-    variants :+
-      draughts.variant.Frisian.id :+
-      draughts.variant.Frysk.id :+
-      draughts.variant.Antidraughts.id :+
-      draughts.variant.Breakthrough.id :+
-      draughts.variant.Russian.id :+
-      draughts.variant.Brazilian.id
+    if (federation.enabled) variants
+    else List(
+      Standard, draughts.variant.Frisian, draughts.variant.Frysk,
+      draughts.variant.Antidraughts, draughts.variant.Breakthrough,
+      draughts.variant.Russian, draughts.variant.Brazilian
+    ).map(_.id)
+
   val variantsWithFenAndVariants =
-    variantsWithVariants :+ FromPosition.id
+    if (federation.enabled)
+      variantsWithVariants ::: (fromPositionVariants.nonEmpty option FromPosition.id).toList
+    else variantsWithVariants :+ FromPosition.id
 
   val speeds = Speed.all map (_.id)
 
