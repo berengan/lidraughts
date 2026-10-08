@@ -487,3 +487,75 @@ object Pos64 extends BoardPos {
   val allPiotrs: Map[Char, PosMotion] = all.map { pos => pos.piotr -> pos }(breakOut)
 
 }
+
+/**
+ * Italian 8x8 geometry: the upper-left and lower-right squares are dark.
+ * Numbering follows the FID 1..32 convention, left to right on each row.
+ * This is deliberately separate from Pos64 (Russian/Brazilian).
+ */
+sealed case class PosItalian private (x: Int, y: Int) extends PosMotion(4 * (y - 1) + x) {
+  private def next(dx: Int, dy: Int): Option[PosMotion] =
+    PosItalian.neighbor(this, dx, dy)
+
+  lazy val moveDownLeft = next(-1, 1)
+  lazy val moveDownRight = next(1, 1)
+  lazy val moveUpLeft = next(-1, -1)
+  lazy val moveUpRight = next(1, -1)
+  lazy val moveDown = next(0, 2)
+  lazy val moveUp = next(0, -2)
+  lazy val moveLeft = next(-2, 0)
+  lazy val moveRight = next(2, 0)
+}
+
+object PosItalian extends BoardPos {
+  private val posCache = new Array[Some[PosMotion]](32)
+
+  // y=1 is the upper row; column 0 is the leftmost square.
+  private def column(x: Int, y: Int): Int =
+    2 * (x - 1) + ((y - 1) % 2)
+
+  private def physicalAt(column: Int, row: Int): Option[PosMotion] =
+    if (column < 0 || column >= 8 || row < 0 || row >= 8 ||
+        (column + row) % 2 != 0) None
+    else posAt((column - row % 2) / 2 + 1, row + 1)
+
+  def neighbor(pos: PosItalian, dx: Int, dy: Int): Option[PosMotion] =
+    physicalAt(column(pos.x, pos.y) + dx, pos.y - 1 + dy)
+
+  def posAt(x: Int, y: Int): Option[PosMotion] =
+    if (x < 1 || x > 4 || y < 1 || y > 8) None
+    else posCache(x + 4 * y - 5)
+
+  def posAt(field: Int): Option[PosMotion] =
+    if (field < 1 || field > 32) None else posCache(field - 1)
+
+  def posAt(field: String): Option[PosMotion] =
+    parseIntOption(field).flatMap(posAt).orElse {
+      if (field.length == 2) {
+        val column = field.charAt(0).toLower - 'a'
+        val rank = field.charAt(1) - '0'
+        physicalAt(column, 8 - rank)
+      } else None
+    }
+
+  def piotr(c: Char): Option[PosMotion] = allPiotrs.get(c)
+
+  val hasAlgebraic = true
+  def algebraic(field: Int): Option[String] =
+    posAt(field).map { pos =>
+      val p = pos.asInstanceOf[PosItalian]
+      s"${('a' + column(p.x, p.y)).toChar}${9 - p.y}"
+    }
+
+  private def createPos(x: Int, y: Int): PosItalian = {
+    val pos = new PosItalian(x, y)
+    posCache(pos.hashCode) = Some(pos)
+    pos
+  }
+
+  val all: List[PosMotion] =
+    (for (y <- 1 to 8; x <- 1 to 4) yield createPos(x, y)).toList
+
+  private val allPiotrs: Map[Char, PosMotion] =
+    all.map(pos => pos.piotr -> pos)(breakOut)
+}
