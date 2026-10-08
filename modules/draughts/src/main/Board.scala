@@ -170,7 +170,7 @@ object Board {
     val promotableYBlack = height
   }
   object BoardSize {
-    val all: List[BoardSize] = List(D100, D64)
+    val all: List[BoardSize] = List(D100, D64, DItalian)
     val max = D100.pos
   }
 
@@ -181,6 +181,13 @@ object Board {
   )
   case object D64 extends BoardSize(
     pos = Pos64,
+    width = 8,
+    height = 8
+  )
+
+  // Same dimensions as D64, but distinct FID square adjacency and numbering.
+  case object DItalian extends BoardSize(
+    pos = PosItalian,
     width = 8,
     height = 8
   )
