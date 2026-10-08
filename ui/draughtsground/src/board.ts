@@ -419,8 +419,8 @@ export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWh
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
-  if (flipFiles) col = boardSize[0] + 1 - col;
   if (!asWhite) col = (boardSize[0] + 1) - col;
+  if (flipFiles) col += row % 2 !== 0 ? 1 : -1;
 
   // on odd rows we skip fields 1,3,5 etc and on even rows 2,4,6 etc
   if (row % 2 !== 0) {
@@ -438,8 +438,8 @@ export function unusedFieldAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize,
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
-  if (flipFiles) col = boardSize[0] + 1 - col;
   if (!asWhite) col = (boardSize[0] + 1) - col;
+  if (flipFiles) col += row % 2 !== 0 ? 1 : -1;
 
   if (row % 2 !== 0) {
     if (col % 2 !== 0) return true;
