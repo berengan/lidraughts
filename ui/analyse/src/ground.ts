@@ -51,7 +51,7 @@ export function makeConfig(ctrl: AnalyseCtrl): CgConfig {
     lastMove: opts.lastMove,
     captureLength: opts.captureLength,
     orientation: ctrl.bottomColor(),
-    coordinates: ctrl.embed ? 0 : pref.coords,
+    coordinates: ctrl.embed ? 0 : (d.game.variant.key === 'italian' ? 1 : pref.coords),
     coordSystem: ctrl.coordSystem(),
     addPieceZIndex: pref.is3d,
     viewOnly: !!ctrl.embed && !ctrl.gamebookPlay(),
