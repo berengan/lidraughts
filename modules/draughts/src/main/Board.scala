@@ -170,7 +170,7 @@ object Board {
     val promotableYBlack = height
   }
   object BoardSize {
-    val all: List[BoardSize] = List(D100, D64)
+    val all: List[BoardSize] = List(D100, D64, DItalian)
     val max = D100.pos
   }
 
