@@ -414,11 +414,12 @@ export function stop(state: State): void {
   cancelMove(state);
 }
 
-export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect): cg.Key | undefined {
+export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect, flipFiles: boolean = false): cg.Key | undefined {
 
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
+  if (flipFiles) col = boardSize[0] + 1 - col;
   if (!asWhite) col = (boardSize[0] + 1) - col;
 
   // on odd rows we skip fields 1,3,5 etc and on even rows 2,4,6 etc
@@ -432,11 +433,12 @@ export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWh
   return (col > 0 && col <= boardSize[0] / 2 && row > 0 && row <= boardSize[1]) ? pos2key([col, row], boardSize) : undefined;
 }
 
-export function unusedFieldAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect): boolean {
+export function unusedFieldAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect, flipFiles: boolean = false): boolean {
 
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
+  if (flipFiles) col = boardSize[0] + 1 - col;
   if (!asWhite) col = (boardSize[0] + 1) - col;
 
   if (row % 2 !== 0) {
