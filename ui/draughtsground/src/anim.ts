@@ -206,7 +206,7 @@ function computePlan(prevPieces: cg.Pieces, current: State, fadeOnly: boolean = 
           if (tempRole) plan.tempRole[newP.key] = tempRole;
 
           const captKeys: Array<cg.Key> = new Array<cg.Key>();
-          let captKey = calcCaptKey(prevPieces, bs, preP.pos[0], preP.pos[1], lastPos[0], lastPos[1]);
+          let captKey = calcCaptKey(prevPieces, bs, preP.pos[0], preP.pos[1], lastPos[0], lastPos[1], current.flipFiles);
           if (captKey) {
             captKeys.push(captKey);
             prevPieces[captKey] = ghostPiece(prevPieces[captKey]);
@@ -238,7 +238,7 @@ function computePlan(prevPieces: cg.Pieces, current: State, fadeOnly: boolean = 
                 nextPlan.tempRole[newP.key] = tempRole;
               }
             }
-            captKey = calcCaptKey(prevPieces, bs, lastPos[0], lastPos[1], newPos[0], newPos[1]);
+            captKey = calcCaptKey(prevPieces, bs, lastPos[0], lastPos[1], newPos[0], newPos[1], current.flipFiles);
             if (captKey) {
               captKeys.push(captKey);
               prevPieces[captKey] = ghostPiece(prevPieces[captKey]);
