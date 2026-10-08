@@ -222,7 +222,7 @@ export default class RoundController {
   };
 
   isAlgebraic = (d: RoundData): boolean => {
-    return d.pref.coordSystem === 1 && d.game.variant.board.key === '64';
+    return d.game.variant.key !== 'italian' && d.pref.coordSystem === 1 && d.game.variant.board.key === '64';
   };
   
   coordSystem = (): number => {
