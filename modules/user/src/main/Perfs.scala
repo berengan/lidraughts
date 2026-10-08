@@ -263,9 +263,8 @@ case object Perfs {
       antidraughts: List[User.LightPerf],
       breakthrough: List[User.LightPerf],
       russian: List[User.LightPerf],
-      brazilian: List[User.LightPerf],
-      italian: List[User.LightPerf]
+      brazilian: List[User.LightPerf]
   )
 
-  val emptyLeaderboards = Leaderboards(Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
+  val emptyLeaderboards = Leaderboards(Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 }
