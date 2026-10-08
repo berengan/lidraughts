@@ -185,6 +185,13 @@ object Board {
     height = 8
   )
 
+  // Same dimensions as D64, but distinct FID square adjacency and numbering.
+  case object DItalian extends BoardSize(
+    pos = PosItalian,
+    width = 8,
+    height = 8
+  )
+
   def san2alg(move: String, boardPos: BoardPos) = {
     val sep = if (move.contains('x')) "x" else "-"
     val algebraicFields = move.split(sep).flatMap {
