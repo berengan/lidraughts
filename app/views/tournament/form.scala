@@ -255,7 +255,7 @@ final private class TourFields(me: User, form: Form[_], existingVariant: Option[
     ).filter { case (key, _) => policy.allowsItaSwissFormat(key) }
     frag(
       form3.group(form("tournamentType.system"), "Sistema torneo") { field =>
-        st.select(id := form3.id(field), name := field.name, cls := "form-control")(
+        st.select(id := form3.id(field), st.name := field.name, cls := "form-control")(
           systems.map { case (system, label) =>
             option(
               value := system.id.toString,

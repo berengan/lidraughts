@@ -22,7 +22,7 @@ final class DataForm {
   def create(user: User, teamBattleId: Option[TeamId] = None) = {
     val federation = FederationConfig.current
     form(user) fill TournamentSetup(
-    name = canPickName(user) && teamBattleId.isEmpty option user.titleUsername,
+      name = canPickName(user) && teamBattleId.isEmpty option user.titleUsername,
     clockTime = clockTimeDefault,
     clockIncrement = clockIncrementDefault,
     minutes = minuteDefault,
@@ -70,7 +70,7 @@ final class DataForm {
     hasChat = tour.hasChat.some,
     promoted = tour.isPromoted.some,
     tournamentType = TournamentTypeSetup(
-      system = (tour.system == System.ItaSwiss).option(System.ItaSwiss.id),
+      system = tour.system.id.some,
       itaSwissFormat = tour.itaSwiss.map(_.format.key),
       itaSwissRounds = tour.itaSwiss.map(_.roundCount)
     )

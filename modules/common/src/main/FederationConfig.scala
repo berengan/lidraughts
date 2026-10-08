@@ -44,7 +44,7 @@ object FederationConfig {
     if (!config.hasPath("federation.enabled") || !config.getBoolean("federation.enabled")) legacy
     else {
       def variant(key: String): Variant =
-        Variant(key).getOrElse(sys.error(s"Unknown federation variant: $key"))
+        Variant(key).getOrElse(throw new IllegalArgumentException(s"Unknown federation variant: $key"))
 
       def variants(path: String): List[Variant] = {
         val keys = config.getStringList(path).asScala.toList
