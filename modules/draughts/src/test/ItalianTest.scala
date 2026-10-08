@@ -5,7 +5,12 @@ import org.specs2.mutable.Specification
 
 class ItalianTest extends Specification {
 
-  private def pos(field: Int): PosMotion = Pos64.posAt(field).get
+  // Legacy test fixtures use Pos64 field labels. Convert their labels to
+  // the horizontally mirrored FID geometry without changing the positions.
+  private def fid(field: Int): Int =
+    ((field - 1) / 4) * 4 + (4 - ((field - 1) % 4))
+
+  private def pos(field: Int): PosMotion = PosItalian.posAt(fid(field)).get
 
   private def situation(color: Color, pieces: (Int, Piece)*): Situation =
     Situation(
@@ -18,7 +23,7 @@ class ItalianTest extends Specification {
     )
 
   private def destinations(situation: Situation, from: Int): List[Int] =
-    situation.validMoves.getOrElse(pos(from), Nil).map(_.dest.fieldNumber).sorted
+    situation.validMoves.getOrElse(pos(from), Nil).map(m => fid(m.dest.fieldNumber)).sorted
 
   private def play(situation: Situation, from: Int, to: Int): Situation =
     situation.validMoves(pos(from)).find(_.dest == pos(to)).get.situationAfter
@@ -115,7 +120,7 @@ class ItalianTest extends Specification {
 
       val moves = sit.validMoves.getOrElse(pos(2), Nil)
       moves must haveSize(1)
-      moves.head.taken.toList.flatten.reverse.map(_.fieldNumber) must_== List(6, 14, 15, 7)
+      moves.head.taken.toList.flatten.reverse.map(p => fid(p.fieldNumber)) must_== List(6, 14, 15, 7)
     }
 
     "keep all captures legal when every capture priority is equal" in {
@@ -247,12 +252,11 @@ class ItalianTest extends Specification {
       ItalianOpeningTable.openings.find(_.number == 1).map(_.moveTable) must beSome("BC")
     }
 
-    "convert official FID square numbering to Pos64 numbering" in {
-      ItalianOpeningTable.lidraughtsField(1) must_== 4
-      ItalianOpeningTable.lidraughtsField(4) must_== 1
-      ItalianOpeningTable.lidraughtsField(21) must_== 24
-      ItalianOpeningTable.lidraughtsField(26) must_== 27
-      ItalianOpeningTable.lidraughtsField(32) must_== 29
+    "preserve official FID square numbering" in {
+      (1 to 32).foreach { field =>
+        ItalianOpeningTable.lidraughtsField(field) must_== field
+      }
+      success
     }
 
     "replay all 174 official FID openings as legal Italian moves" in {
@@ -262,7 +266,7 @@ class ItalianTest extends Specification {
           val fields = token.split('-').map(_.toInt)
           val from = ItalianOpeningTable.lidraughtsField(fields(0))
           val to = ItalianOpeningTable.lidraughtsField(fields(1))
-          sit = play(sit, from, to)
+          sit = play(sit, fid(from), fid(to))
         }
         format.Forsyth.>>(sit) must_== opening.fen
       }
