@@ -2,6 +2,7 @@ package lidraughts.setup
 
 import draughts.{ Mode, Speed }
 import lidraughts.rating.RatingRange
+import lidraughts.common.FederationConfig
 
 case class FilterConfig(
     variant: List[draughts.variant.Variant],
@@ -17,15 +18,20 @@ case class FilterConfig(
     ratingRange.toString
   ).some
 
+  def effectiveVariants: List[draughts.variant.Variant] = {
+    val allowed = variant.filter(FederationConfig.current.allowsVariant)
+    if (allowed.isEmpty) FilterConfig.variants else allowed
+  }
+
   def render = play.api.libs.json.Json.obj(
-    "variant" -> variant.map(_.key),
+    "variant" -> effectiveVariants.map(_.key),
     "mode" -> mode.map(_.id),
     "speed" -> speed.map(_.id),
     "rating" -> ratingRange.notBroad.map(rr => List(rr.min, rr.max))
   )
 
   def nonEmpty = copy(
-    variant = if (variant.isEmpty) FilterConfig.default.variant else variant,
+    variant = effectiveVariants,
     mode = if (mode.isEmpty) FilterConfig.default.mode else mode,
     speed = if (speed.isEmpty) FilterConfig.default.speed else speed
   )
@@ -33,15 +39,19 @@ case class FilterConfig(
 
 object FilterConfig {
 
-  val variants = List(
-    draughts.variant.Standard,
-    draughts.variant.Frisian,
-    draughts.variant.Antidraughts,
-    draughts.variant.Frysk,
-    draughts.variant.Breakthrough,
-    draughts.variant.Russian,
-    draughts.variant.Brazilian
-  )
+  val variants = {
+    val policy = FederationConfig.current
+    if (policy.enabled) policy.enabledVariants
+    else List(
+      draughts.variant.Standard,
+      draughts.variant.Frisian,
+      draughts.variant.Antidraughts,
+      draughts.variant.Frysk,
+      draughts.variant.Breakthrough,
+      draughts.variant.Russian,
+      draughts.variant.Brazilian
+    )
+  }
 
   val modes = Mode.all
   val speeds = Speed.all
