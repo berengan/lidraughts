@@ -1,12 +1,36 @@
 import * as cg from './types'
 import { field2key, movesDown100, movesUp100, movesHorizontal100, movesDown64, movesUp64, movesHorizontal64 } from './util'
 
-export default function premove(pieces: cg.Pieces, boardSize: cg.BoardSize, key: cg.Key, variant?: string): cg.Key[] {
+export default function premove(pieces: cg.Pieces, boardSize: cg.BoardSize, key: cg.Key, variant?: string, flipFiles: boolean = false): cg.Key[] {
 
   const piece = pieces[key],
     field: number = Number(key);
 
   if (piece === undefined || isNaN(field)) return new Array<cg.Key>();
+
+  if (flipFiles && boardSize[0] === 8 && boardSize[1] === 8) {
+    const row = Math.floor((field - 1) / 4) + 1;
+    const col = 2 * ((field - 1) % 4) + (row % 2 === 1 ? 0 : 1);
+    const result: cg.Key[] = [];
+    const target = (x: number, y: number): cg.Key | undefined => {
+      if (x < 0 || x >= 8 || y < 1 || y > 8 || (x + y - 1) % 2 !== 0) return undefined;
+      return field2key((y - 1) * 4 + Math.floor(x / 2) + 1);
+    };
+    const directions = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+    directions.forEach(d => {
+      const dx = d[0], dy = d[1];
+      const adjacent = target(col + dx, row + dy);
+      if (!adjacent) return;
+      if (piece.role === 'king' || (piece.role === 'man' &&
+          ((piece.color === 'white' && dy === -1) || (piece.color === 'black' && dy === 1)))) {
+        result.push(adjacent);
+      }
+      const blocker = pieces[adjacent];
+      const landing = target(col + 2 * dx, row + 2 * dy);
+      if (landing && (!blocker || blocker.color !== piece.color)) result.push(landing);
+    });
+    return result;
+  }
 
   const frisianVariant = variant && (variant === "frisian" || variant === "frysk"),
     is100 = boardSize[0] === 10,
