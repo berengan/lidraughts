@@ -533,7 +533,7 @@ export default class AnalyseCtrl {
   }
 
   isAlgebraic(): boolean {
-    return this.data.pref.coordSystem === 1 && this.data.game.variant.board.key === '64';
+    return this.data.game.variant.key !== 'italian' && this.data.pref.coordSystem === 1 && this.data.game.variant.board.key === '64';
   }
 
   coordSystem(): number {
