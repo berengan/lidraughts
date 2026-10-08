@@ -271,7 +271,7 @@ function computeSquareBounds(key: cg.Key, boardSize: cg.BoardSize, asWhite: bool
   }
 
   return {
-    left: bounds.left + bounds.width * (flipFiles ? w - 1 - ((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0)) : ((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0))) / w,
+    left: bounds.left + bounds.width * (((pos[0] - 1) * 2 + (pos[1] % 2 !== 0 ? 1 : 0)) + (flipFiles ? (pos[1] % 2 !== 0 ? -1 : 1) : 0)) / w,
     top: bounds.top + bounds.height * (pos[1] - 1) / h,
     width: bounds.width / w,
     height: bounds.height / h
