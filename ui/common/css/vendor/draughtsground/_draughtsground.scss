@@ -128,3 +128,20 @@ cg-container {
     opacity: 0.5;
   }
 }
+
+// Italian draughts uses the opposite playable-square colour parity on 8x8.
+// Mirror only the board texture; draughtsground mirrors pieces, labels and hit tests.
+.cg-wrap.italian-board {
+  cg-board::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: inherit;
+    background-size: 100% 100%;
+    transform: scaleX(-1);
+    pointer-events: none;
+  }
+  svg {
+    transform: scaleX(-1);
+  }
+}
