@@ -1,6 +1,7 @@
 package lidraughts.setup
 
 import lidraughts.game.{ GameRepo, Pov, PerfPicker }
+import lidraughts.common.FederationConfig
 import lidraughts.lobby.actorApi.{ AddHook, AddSeek }
 import lidraughts.user.{ User, UserContext }
 
@@ -34,6 +35,8 @@ private[setup] final class Processor(
     save: Boolean
   )(implicit ctx: UserContext): Fu[Processor.HookResult] = {
     import Processor.HookResult._
+    if (!FederationConfig.current.allowsGameVariant(configBase.variant)) fuccess(Refused)
+    else {
     val config = configBase.fixColor
     (if (save) saveConfig(_ withHook config) else funit) >> {
       config.hook(uid, ctx.me, sid, blocking) match {
@@ -50,6 +53,7 @@ private[setup] final class Processor(
         }
         case _ => fuccess(Refused)
       }
+    }
     }
   }
 

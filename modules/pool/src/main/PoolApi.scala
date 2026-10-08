@@ -3,6 +3,7 @@ package lidraughts.pool
 import akka.actor._
 
 import lidraughts.game.Game
+import lidraughts.common.FederationConfig
 import lidraughts.rating.RatingRange
 import lidraughts.socket.Socket.{ Uid, Uids }
 import lidraughts.user.User
@@ -26,7 +27,8 @@ final class PoolApi(
   }.toMap
 
   def join(poolId: PoolConfig.Id, joiner: Joiner) =
-    playbanApi.hasCurrentBan(joiner.userId) foreach {
+    if (FederationConfig.current.allowsGameVariant(draughts.variant.Standard))
+      playbanApi.hasCurrentBan(joiner.userId) foreach {
       case false => actors foreach {
         case (id, actor) if id == poolId => playbanApi.getRageSit(joiner.userId).foreach(actor ! Join(joiner, _))
         case (_, actor) => actor ! Leave(joiner.userId)

@@ -4,6 +4,7 @@ import draughts.{ DraughtsGame, Situation, Color => DraughtsColor }
 
 import actorApi.{ JoinHook, JoinSeek }
 import lidraughts.game.{ GameRepo, Game, Player, PerfPicker }
+import lidraughts.common.FederationConfig
 import lidraughts.user.{ User, UserRepo }
 import lidraughts.socket.Socket.Uid
 
@@ -87,6 +88,7 @@ private[lobby] object Biter {
   }
 
   def canJoin(hook: Hook, user: Option[LobbyUser]): Boolean =
+    FederationConfig.current.allowsGameVariant(hook.realVariant) &&
     (hook.isAuth == user.isDefined || user.isDefined && !hook.isAuth) && user.fold(true) { u =>
       u.lame == hook.lame &&
         !hook.userId.contains(u.id) &&
@@ -98,6 +100,7 @@ private[lobby] object Biter {
     }
 
   def canJoin(seek: Seek, user: LobbyUser): Boolean =
+    FederationConfig.current.allowsGameVariant(seek.realVariant) &&
     seek.user.id != user.id &&
       (seek.realMode.casual || user.lame == seek.user.lame) &&
       !(user.blocking contains seek.user.id) &&

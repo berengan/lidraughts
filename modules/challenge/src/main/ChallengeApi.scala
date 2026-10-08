@@ -5,6 +5,7 @@ import org.joda.time.DateTime
 import scala.concurrent.duration._
 
 import lidraughts.game.{ Game, Pov }
+import lidraughts.common.FederationConfig
 import lidraughts.hub.actorApi.map.Tell
 import lidraughts.hub.actorApi.socket.SendTo
 import lidraughts.user.{ User, UserRepo }
@@ -27,7 +28,8 @@ final class ChallengeApi(
 
   // returns boolean success
   def create(c: Challenge): Fu[Boolean] =
-    if (c.isExternal) (repo insert c) inject true
+    if (!FederationConfig.current.allowsGameVariant(c.variant)) fuFalse
+    else if (c.isExternal) (repo insert c) inject true
     else isLimitedByMaxPlaying(c) flatMap {
       case true => fuFalse
       case false => {

@@ -20,7 +20,9 @@ object filter {
         tbody(
           tr(cls := "variant")(
             td(trans.variant()),
-            td(renderCheckboxes(form, "variant", filter.variant.map(_.id.toString), translatedVariantChoicesWithVariants))
+            td(renderCheckboxes(form, "variant", filter.variant.map(_.id.toString), translatedEnabledGameChoices(
+              translatedVariantChoicesWithVariants, lidraughts.setup.Config.variantsWithVariants
+            )))
           ),
           tr(
             td(trans.timeControl()),

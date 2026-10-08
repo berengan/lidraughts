@@ -6,6 +6,7 @@ import lidraughts.api.Context
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
 import lidraughts.common.HTTPRequest
+import lidraughts.setup.Config
 import lidraughts.common.String.html.safeJsonValue
 import lidraughts.game.Pov
 
@@ -79,7 +80,7 @@ object home {
               "button button-metal config_friend" -> true,
               "disabled" -> currentGame.isDefined
             ), trans.playWithAFriend()),
-            a(href := routes.Setup.aiForm, cls := List(
+            Config.aiVariants.nonEmpty option a(href := routes.Setup.aiForm, cls := List(
               "button button-metal config_ai" -> true,
               "disabled" -> currentGame.isDefined
             ), trans.playWithTheMachine())

@@ -176,6 +176,10 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
     }
   }
 
+  def translatedEnabledGameChoices(choices: List[SelectChoice], allowedIds: List[Int]): List[SelectChoice] =
+    if (!FederationConfig.current.enabled) choices
+    else choices.filter { case (id, _, _) => allowedIds.exists(_.toString == id) }
+
   def translatedVariantChoicesWithFen(implicit ctx: Context) =
     translatedVariantChoices(ctx) :+
       variantTupleId(draughts.variant.FromPosition)
