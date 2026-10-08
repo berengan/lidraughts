@@ -20,7 +20,7 @@ interface SquareClasses { [key: string]: string }
 export function render(s: State): void {
   const asWhite: boolean = whitePov(s),
     bs = s.boardSize,
-    posToTranslate = s.dom.relative ? util.posToTranslateRel(bs) : util.posToTranslateAbs(s.dom.bounds(), bs),
+    posToTranslate = s.dom.relative ? util.posToTranslateRel(bs, s.flipFiles) : util.posToTranslateAbs(s.dom.bounds(), bs, s.flipFiles),
     translate = s.dom.relative ? util.translateRel : util.translateAbs,
     boardEl: HTMLElement = s.dom.elements.board,
     pieces: cg.Pieces = s.pieces,
@@ -240,7 +240,7 @@ export function render(s: State): void {
 export function updateBounds(s: State) {
   if (s.dom.relative) return;
   const asWhite: boolean = whitePov(s),
-    posToTranslate = util.posToTranslateAbs(s.dom.bounds(), s.boardSize);
+    posToTranslate = util.posToTranslateAbs(s.dom.bounds(), s.boardSize, s.flipFiles);
   let el = s.dom.elements.board.firstChild as HTMLElement | undefined;
   while (el) {
     if ((isPieceNode(el) && !el.cgAnimating) || isSquareNode(el) || isFieldNumber(el)) {
