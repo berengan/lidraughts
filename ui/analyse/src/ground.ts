@@ -47,6 +47,7 @@ export function makeConfig(ctrl: AnalyseCtrl): CgConfig {
   const config = {
     turnColor: opts.turnColor,
     boardSize: d.game.variant.board.size,
+    flipFiles: d.game.variant.key === 'italian',
     fen: opts.fen,
     lastMove: opts.lastMove,
     captureLength: opts.captureLength,
