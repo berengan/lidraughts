@@ -20,6 +20,7 @@ export function makeConfig(ctrl: RoundController): Config {
     fen: step.fen,
     orientation: boardOrientation(data, ctrl.flip),
     boardSize: data.game.variant.board.size,
+    flipFiles: data.game.variant.key === 'italian',
     turnColor: (step.ply - (ghosts == 0 ? 0 : 1)) % 2 === 0 ? 'white' : 'black',
     lastMove: util.uci2move(step.uci),
     captureLength: data.captureLength,
