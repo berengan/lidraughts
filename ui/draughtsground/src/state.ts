@@ -8,6 +8,7 @@ import * as cg from './types';
 export interface State {
   pieces: cg.Pieces;
   boardSize: cg.BoardSize;
+  flipFiles?: boolean;
   orientation: cg.Color; // board orientation. white | black
   turnColor: cg.Color; // turn to play. white | black
   lastMove?: cg.Key[]; // ucis of the last move [32, 27]
@@ -108,6 +109,7 @@ export function defaults(): Partial<State> {
   return {
     pieces: fen.read(fen.initial),
     boardSize: [10, 10],
+    flipFiles: false,
     orientation: 'white',
     turnColor: 'white',
     coordinates: 2,
