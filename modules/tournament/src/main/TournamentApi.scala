@@ -171,12 +171,14 @@ final class TournamentApi(
       bus.publish(lidraughts.hub.actorApi.slack.Warning(msg), 'slack)
     }
 
-  private[tournament] def createFromPlan(plan: Schedule.Plan): Funit = {
-    val minutes = Schedule durationFor plan.schedule
-    val tournament = plan.build.foldRight(Tournament.schedule(plan.schedule, minutes)) { _(_) }
-    logger.info(s"Create $tournament")
-    TournamentRepo.insert(tournament).void
-  }
+  private[tournament] def createFromPlan(plan: Schedule.Plan): Funit =
+    if (!plan.schedule.allowedByFederation(lidraughts.common.FederationConfig.current)) funit
+    else {
+      val minutes = Schedule durationFor plan.schedule
+      val tournament = plan.build.foldRight(Tournament.schedule(plan.schedule, minutes)) { _(_) }
+      logger.info(s"Create $tournament")
+      TournamentRepo.insert(tournament).void
+    }
 
   def teamBattleUpdate(
     tour: Tournament,
