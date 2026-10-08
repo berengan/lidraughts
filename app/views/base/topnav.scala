@@ -1,6 +1,7 @@
 package views.html.base
 
 import lidraughts.api.Context
+import lidraughts.common.FederationConfig
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
 
@@ -25,6 +26,14 @@ object topnav {
           a(href := routes.Swiss.home())(trans.swiss.swissTournaments()),
           a(href := routes.Simul.home)(trans.simultaneousExhibitions())
         )
+      )
+    ),
+    (FederationConfig.current.enabled && FederationConfig.current.allowsVariant(draughts.variant.Italian)) option st.section(
+      linkTitle(routes.Page.variant("italian").toString, span("Dama Italiana")),
+      div(role := "group")(
+        a(href := routes.Page.variant("italian"))("Regole della Dama Italiana"),
+        a(href := "/?any#hook")("Gioca a Dama Italiana"),
+        a(href := routes.Tournament.home())("Tornei di Dama Italiana")
       )
     ),
     st.section(

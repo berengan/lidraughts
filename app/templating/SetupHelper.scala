@@ -141,7 +141,7 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
   private def fromPositionVariantTupleId(v: Variant)(implicit ctx: Context) =
     variantTuple(encodeId, v => fromPositionVariantName(v.name))(v)
 
-  private def variantTuple(encode: Variant => String, variantName: Variant => String = _.name)(variant: Variant)(implicit ctx: Context) =
+  private def variantTuple(encode: Variant => String, variantName: Variant => String = v => if (v.italian) "Dama Italiana" else v.name)(variant: Variant)(implicit ctx: Context) =
     (encode(variant), variantName(variant), variantTitle(variant).some)
 
   private def fromPositionVariantName(variantName: String) =

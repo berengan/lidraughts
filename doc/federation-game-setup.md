@@ -15,6 +15,9 @@ This branch extends the HOCON federation policy introduced in
 - Standard-only quick-pairing pools are hidden and cannot be joined when
   Standard is disabled.
 - Lobby filter defaults to the enabled variants.
+- Federation-mode UI adds a Dama Italiana navigation entry, a local rules page,
+  an Italian label in setup choices, and filters homepage tournament highlights.
+  The dedicated Italian rating/PerfType and a complete FID rules page remain future work.
 - Automatic Arena tournament scheduling skips variants not enabled for Arena;
   the tournament creation service checks the same policy as a second guard.
 - AI choices are intersected with the **existing engine-supported** set.
@@ -34,6 +37,11 @@ variant prevents **new** games and challenges.
 - Persisted user setup preferences that refer to now-disabled variants:
   forms filter their choices but may need a friendly default-selection UX.
 - Browser-level smoke tests for the lobby, challenge forms and API responses.
+- WebSocket reconnection on local development hosts: inspect the HTML
+  data-socket-domain value. The client connects to net.socket.domain using
+  ws:// or wss://, and Play already provides /socket/v3 and /lobby/socket/v3.
+  Configure that domain to a reachable local host and port (or proxy),
+  matching the browser origin/protocol; do not hard-code a public socket host.
 - Existing scheduled tournaments in the database are not removed or cancelled.
   The legacy scheduler does not define Italian draughts plans, so with only
   Italian enabled no automatic tournaments will be added until those plans
