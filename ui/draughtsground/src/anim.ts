@@ -48,7 +48,7 @@ interface AnimPieces {
 interface SamePieces { [key: string]: boolean }
 
 export function anim<A>(mutation: Mutation<A>, state: State, fadeOnly: boolean = false, noCaptSequences: boolean = false): A {
-  return state.animation.enabled ? animate(mutation, state, fadeOnly, noCaptSequences) : render(mutation, state);
+  return state.animation.enabled && !state.flipFiles ? animate(mutation, state, fadeOnly, noCaptSequences) : render(mutation, state);
 }
 
 export function render<A>(mutation: Mutation<A>, state: State): A {
