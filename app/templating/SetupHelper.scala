@@ -4,6 +4,7 @@ package templating
 import draughts.{ Mode, Speed }
 import draughts.variant.Variant
 import lidraughts.api.Context
+import lidraughts.common.FederationConfig
 import lidraughts.i18n.{ I18nKeys => trans }
 import lidraughts.pref.Pref
 import lidraughts.report.Reason
@@ -166,6 +167,14 @@ trait SetupHelper { self: I18nHelper with GameHelper =>
       draughts.variant.Brazilian,
       draughts.variant.Italian
     ).map(variantTuple(encode))
+
+  def translatedTournamentVariantChoices(existing: Option[Variant] = None)(implicit ctx: Context): List[SelectChoice] = {
+    val policy = FederationConfig.current
+    translatedVariantChoicesWithVariants.filter {
+      case (id, _, _) => !policy.enabled ||
+        policy.enabledVariants.exists(_.id.toString == id) || existing.exists(_.id.toString == id)
+    }
+  }
 
   def translatedVariantChoicesWithFen(implicit ctx: Context) =
     translatedVariantChoices(ctx) :+

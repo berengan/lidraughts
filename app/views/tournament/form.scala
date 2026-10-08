@@ -5,6 +5,8 @@ import play.api.data.{ Field, Form }
 
 import draughts.variant.{ Variant, Standard, Russian, Brazilian, Italian }
 import lidraughts.api.Context
+import lidraughts.common.FederationConfig
+import lidraughts.tournament.System
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
 import lidraughts.tournament.{ Condition, DataForm, Tournament }
@@ -76,7 +78,7 @@ object form {
     )
   ) {
       val isTeamBattle = tour.isTeamBattle || form("teamBattleByTeam").value.nonEmpty
-      val fields = new TourFields(me, form)
+      val fields = new TourFields(me, form, Some(tour.variant))
       main(cls := "page-small")(
         div(cls := "tour__form box box-pad")(
           h1("Edit ", tour.fullName),
@@ -203,7 +205,7 @@ object form {
     )
 }
 
-final private class TourFields(me: User, form: Form[_])(implicit ctx: Context) {
+final private class TourFields(me: User, form: Form[_], existingVariant: Option[Variant] = None)(implicit ctx: Context) {
 
   def name(isTeamBattle: Boolean) = DataForm.canPickName(me) ?? {
     form3.group(form("name"), trans.name()) { f =>
@@ -236,29 +238,46 @@ final private class TourFields(me: User, form: Form[_])(implicit ctx: Context) {
   )
   def variant =
     form3.group(form("variant"), trans.variant(), half = true)(
-      form3.select(_, translatedVariantChoicesWithVariants.map(x => x._1 -> x._2))
+      form3.select(_, translatedTournamentVariantChoices(existingVariant).map(x => x._1 -> x._2))
     )
-  def tournamentType = frag(
-    form3.group(form("tournamentType.system"), "Sistema torneo")(
-      form3.select(_, List(
-        "1" -> "Arena",
-        "2" -> "Italo-Svizzero FID"
-      ))
-    ),
-    form3.split(
-      form3.group(form("tournamentType.itaSwissFormat"), "Formato Italo-Svizzero", half = true)(
-        form3.select(_, List(
-          "" -> "—",
-          "ITA_SWISS_FID_ART2" -> "Art. 2",
-          "ITA_SWISS_FID_ART8" -> "Art. 8",
-          "ITA_SWISS_FID_ART9" -> "Art. 9"
-        ))
-      ),
-      form3.group(form("tournamentType.itaSwissRounds"), "Numero turni", half = true)(
-        form3.input(_)(tpe := "number", min := 1, max := 99)
+  def tournamentType = {
+    val policy = FederationConfig.current
+    val systems = List(
+      System.Arena -> "Arena",
+      System.ItaSwiss -> "Italo-Svizzero FID"
+    ).filter { case (system, _) =>
+      !policy.enabled || policy.variantsForSystem(system.key).nonEmpty
+    }
+    val formats = List("" -> "—") ::: List(
+      "ITA_SWISS_FID_ART2" -> "Art. 2",
+      "ITA_SWISS_FID_ART8" -> "Art. 8",
+      "ITA_SWISS_FID_ART9" -> "Art. 9"
+    ).filter { case (key, _) => policy.allowsItaSwissFormat(key) }
+    frag(
+      form3.group(form("tournamentType.system"), "Sistema torneo") { field =>
+        st.select(id := form3.id(field), name := field.name, cls := "form-control")(
+          systems.map { case (system, label) =>
+            option(
+              value := system.id.toString,
+              attr("data-variants") := (if (policy.enabled)
+                policy.variantsForSystem(system.key).map(_.id).mkString(",") else ""),
+              field.value.has(system.id.toString) option selected
+            )(label)
+          }
+        )
+      },
+      systems.exists(_._1 == System.ItaSwiss) option div(cls := "ita-swiss-fields")(
+        form3.split(
+          form3.group(form("tournamentType.itaSwissFormat"), "Formato Italo-Svizzero", half = true)(
+            form3.select(_, formats)
+          ),
+          form3.group(form("tournamentType.itaSwissRounds"), "Numero turni", half = true)(
+            form3.input(_)(tpe := "number", min := 1, max := 99)
+          )
+        )
       )
     )
-  )
+  }
   def startPosition(v: Variant) =
     form3.group(form("position_" + v.key), trans.startPosition(), klass = "position position-" + v.key)(
       views.html.tournament.form.startingPosition(_, v)

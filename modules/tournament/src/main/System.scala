@@ -1,6 +1,6 @@
 package lidraughts.tournament
 
-sealed abstract class System(val id: Int) {
+sealed abstract class System(val id: Int, val key: String) {
   val pairingSystem: PairingSystem
   val scoringSystem: ScoringSystem
   val berserkable: Boolean
@@ -9,13 +9,13 @@ sealed abstract class System(val id: Int) {
 }
 
 object System {
-  case object Arena extends System(id = 1) {
+  case object Arena extends System(id = 1, key = "arena") {
     val pairingSystem = arena.PairingSystem
     val scoringSystem = arena.ScoringSystem
     val berserkable = true
   }
 
-  case object ItaSwiss extends System(id = 2) {
+  case object ItaSwiss extends System(id = 2, key = "itaSwiss") {
     val pairingSystem = itaswiss.PairingSystem
     val scoringSystem = itaswiss.ScoringSystem
     val berserkable = false

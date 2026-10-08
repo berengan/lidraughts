@@ -15,6 +15,8 @@ class SystemTest extends Specification {
       System(2) must beSome(System.ItaSwiss)
       System.ItaSwiss.default must beFalse
       System.ItaSwiss.berserkable must beFalse
+      System.ItaSwiss.key must_== "itaSwiss"
+      System.Arena.key must_== "arena"
     }
   }
 }

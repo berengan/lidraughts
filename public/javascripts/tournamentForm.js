@@ -16,6 +16,25 @@ $(function() {
   $variant.on('change', showPosition);
   showPosition();
 
+  var $system = $('#form3-tournamentType_system');
+  var $itaSwissFields = $('.ita-swiss-fields');
+  function updateTournamentSystems() {
+    if (!$system.length) return;
+    var variantId = $variant.val();
+    $system.find('option').each(function() {
+      var allowedVariants = $(this).attr('data-variants');
+      var allowed = !allowedVariants || allowedVariants.split(',').indexOf(variantId) !== -1;
+      $(this).prop('disabled', !allowed).prop('hidden', !allowed);
+    });
+    if ($system.find('option:selected').prop('disabled')) {
+      $system.val($system.find('option:not(:disabled)').first().val());
+    }
+    $itaSwissFields.toggle($system.val() === '2');
+  }
+  $variant.on('change', updateTournamentSystems);
+  $system.on('change', updateTournamentSystems);
+  updateTournamentSystems();
+
   function maxDate() {
     return new Date(Date.now() + 1000 * 3600 * 24 * ($teamMember.val() ? 180 : 31));
   }

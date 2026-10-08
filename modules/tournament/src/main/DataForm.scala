@@ -10,6 +10,7 @@ import draughts.Mode
 import draughts.StartingPosition
 import draughts.variant.{ Brazilian, Italian, Variant, Standard, Russian }
 import lidraughts.common.Form._
+import lidraughts.common.FederationConfig
 import lidraughts.hub.lightTeam._
 import lidraughts.user.User
 
@@ -18,14 +19,16 @@ final class DataForm {
   import DataForm._
   import UTCDate._
 
-  def create(user: User, teamBattleId: Option[TeamId] = None) = form(user) fill TournamentSetup(
+  def create(user: User, teamBattleId: Option[TeamId] = None) = {
+    val federation = FederationConfig.current
+    form(user) fill TournamentSetup(
     name = canPickName(user) && teamBattleId.isEmpty option user.titleUsername,
     clockTime = clockTimeDefault,
     clockIncrement = clockIncrementDefault,
     minutes = minuteDefault,
     waitMinutes = waitMinuteDefault.some,
     startDate = none,
-    variant = draughts.variant.Standard.id.toString.some,
+    variant = federation.defaultVariant.id.toString.some,
     positionStandard = Standard.initialFen.some,
     positionRussian = Russian.initialFen.some,
     positionBrazilian = Brazilian.initialFen.some,
@@ -40,10 +43,11 @@ final class DataForm {
     description = none,
     hasChat = true.some,
     promoted = false.some,
-    tournamentType = TournamentTypeSetup(system = System.Arena.id.some)
-  )
+    tournamentType = TournamentTypeSetup(system = System.all.find(_.key == federation.defaultTournamentSystem).map(_.id))
+    )
+  }
 
-  def edit(user: User, tour: Tournament, teamBattleId: Option[TeamId] = None) = form(user) fill TournamentSetup(
+  def edit(user: User, tour: Tournament, teamBattleId: Option[TeamId] = None) = form(user, Some(tour)) fill TournamentSetup(
     name = tour.name.some,
     clockTime = tour.clock.limitInMinutes,
     clockIncrement = tour.clock.incrementSeconds,
@@ -79,7 +83,7 @@ final class DataForm {
     }
   )
 
-  private def form(user: User) = Form(mapping(
+  private def form(user: User, existing: Option[Tournament] = None) = Form(mapping(
     "name" -> optional(nameType),
     "clockTime" -> numberInDouble(clockTimeChoices),
     "clockIncrement" -> numberIn(clockIncrementChoices),
@@ -115,7 +119,8 @@ final class DataForm {
     .verifying("Increase tournament duration, or decrease game clock", _.sufficientDuration)
     .verifying("Reduce tournament duration, or increase game clock", _.excessiveDuration)
     .verifying("Start date is too far in the future", _.validStartDate)
-    .verifying("Italian Swiss requires Italian draughts, a FID format and round count", _.validItaSwiss))
+    .verifying("Italian Swiss requires Italian draughts, a FID format and round count", _.validItaSwiss)
+    .verifying("Variant, tournament system or format not enabled for this deployment", _.validFederationPolicy(existing)))
 }
 
 object DataForm {
@@ -188,9 +193,10 @@ private[tournament] case class TournamentSetup(
 
   def realMode = Mode(rated.orElse(mode.map(Mode.Rated.id ==)) | true)
 
-  def realVariant = variant.flatMap(DataForm.guessVariant) | draughts.variant.Standard
+  def realVariant = variant.flatMap(DataForm.guessVariant) | FederationConfig.current.defaultVariant
 
-  def realSystem = tournamentType.system.flatMap(System.apply) | System.Arena
+  def realSystem = tournamentType.system.flatMap(System.apply) |
+    System.all.find(_.key == FederationConfig.current.defaultTournamentSystem).getOrElse(System.Arena)
 
   def realItaSwissFormat = tournamentType.itaSwissFormat.flatMap(itaswiss.Format.byKey)
 
@@ -199,6 +205,22 @@ private[tournament] case class TournamentSetup(
   def validItaSwiss =
     realSystem != System.ItaSwiss ||
       (realVariant == draughts.variant.Italian && realItaSwissFormat.isDefined && itaSwissRounds.exists(_ > 0))
+
+  // A historical tournament can retain its original (now disabled) variant/system.
+  def validFederationPolicy(existing: Option[Tournament]): Boolean = {
+    val policy = FederationConfig.current
+    if (!policy.enabled) true
+    else {
+      val selectedVariant = variant.flatMap(DataForm.guessVariant).orElse(existing.map(_.variant))
+        .getOrElse(policy.defaultVariant)
+      val selectedSystem = existing.map(_.system).getOrElse(realSystem)
+      val selectedFormat = existing.flatMap(_.itaSwiss.map(_.format.key))
+        .orElse(tournamentType.itaSwissFormat)
+      val unchanged = existing.exists(t => t.variant == selectedVariant && t.system == selectedSystem)
+      unchanged || (policy.allowsTournament(selectedSystem.key, selectedVariant) &&
+        (selectedSystem != System.ItaSwiss || selectedFormat.exists(policy.allowsItaSwissFormat)))
+    }
+  }
 
   def clockConfig = draughts.Clock.Config((clockTime * 60).toInt, clockIncrement)
 
