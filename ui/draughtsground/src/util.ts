@@ -80,20 +80,6 @@ const posToTranslateBase = (pos: cg.Pos, boardSize: cg.BoardSize, asWhite: boole
     }
   }
 
-/* legacy */
-/*
-        (!asWhite ? xf - ((shift - 0.5) + pos[0]) : (shift - 0.5) + pos[0]) * xFactor,
-        (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
-      ];
-    } else {
-      return [
-        (!asWhite ? xf - ((pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) : (pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) * xFactor,
-        (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
-      ];
-    }
-  }
-
-*/
 export const posToTranslateAbs = (bounds: ClientRect, boardSize: cg.BoardSize, flipFiles: boolean = false) => {
   const xFactor = bounds.width / (boardSize[0] / 2), yFactor = bounds.height / boardSize[1];
   return (pos: cg.Pos, asWhite: boolean, shift: number) => posToTranslateBase(pos, boardSize, asWhite, xFactor, yFactor, shift, flipFiles);
