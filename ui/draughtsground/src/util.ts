@@ -68,13 +68,13 @@ const posToTranslateBase = (pos: cg.Pos, boardSize: cg.BoardSize, asWhite: boole
     if (shift !== 0) {
       const x = (!asWhite ? xf - ((shift - 0.5) + pos[0]) : (shift - 0.5) + pos[0]) * xFactor;
       return [
-        flipFiles ? (boardSize[0] - 1) * xFactor / 2 - x : x,
+        flipFiles ? x + (((asWhite ? pos[1] : boardSize[1] + 1 - pos[1]) % 2 !== 0) ? -xFactor / 2 : xFactor / 2) : x,
         (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
       ];
     } else {
       const x = (!asWhite ? xf - ((pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) : (pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) * xFactor;
       return [
-        flipFiles ? (boardSize[0] - 1) * xFactor / 2 - x : x,
+        flipFiles ? x + (((asWhite ? pos[1] : boardSize[1] + 1 - pos[1]) % 2 !== 0) ? -xFactor / 2 : xFactor / 2) : x,
         (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
       ];
     }
