@@ -15,7 +15,7 @@ object topnav {
     st.section(
       linkTitle("/", frag(
         span(cls := "play")(trans.play()),
-        span(cls := "home")("lidraughts.org")
+        span(cls := "home")("LiFiDama")
       )),
       div(role := "group")(
         if (ctx.noBot) a(href := "/?any#hook")(trans.createAGame())
@@ -44,7 +44,7 @@ object topnav {
     st.section(
       linkTitle(routes.Tv.index.toString, trans.watch()),
       div(role := "group")(
-        a(href := routes.Tv.index)("Lidraughts TV"),
+        a(href := routes.Tv.index)("LiFiDama TV"),
         a(href := routes.Tv.games)(trans.currentGames()),
         a(href := routes.Streamer.index())(trans.streamersMenu()),
         a(href := routes.Relay.index())(trans.broadcast.broadcasts())
