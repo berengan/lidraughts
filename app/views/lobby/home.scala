@@ -149,7 +149,7 @@ object home {
             views.html.forum.post recent forumRecent
           )
         ),
-        HomeDisplay.showBlog option bits.lastPosts(lastPost),
+        if (HomeDisplay.showBlog) bits.lastPosts(lastPost) else None,
         HomeDisplay.showDonation option div(cls := "lobby__support")(
           a(href := routes.Plan.index)(
             iconTag(patronIconChar),
