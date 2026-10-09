@@ -141,6 +141,7 @@ object layout {
       st.body(
         cls := List(
           s"${ctx.currentBg} ${ctx.currentTheme.cssClass} coords-${ctx.pref.coordsClass}" -> true,
+          "lifidama-fid" -> play.api.Play.current.configuration.getBoolean("lifidama.theme.enabled").getOrElse(false),
           "zen" -> ctx.pref.isZen,
           "blind-mode" -> ctx.blind,
           "kid" -> ctx.kid,
