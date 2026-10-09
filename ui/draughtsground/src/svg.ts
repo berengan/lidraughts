@@ -125,19 +125,19 @@ function renderShape(state: State, { shape, current, hash }: Shape, brushes: Dra
   let el: SVGElement;
   if (shape.piece) el = renderPiece(
     state.drawable.pieces.baseUrl,
-    orient(key2pos(shape.orig, state.boardSize), state.orientation, boardSize),
+    orient(key2pos(shape.orig, state.boardSize), state.orientation, boardSize, !!state.flipFiles),
     shape.piece,
     bounds,
     boardSize);
   else {
-    const orig = orient(key2pos(shape.orig, state.boardSize), state.orientation, boardSize);
+    const orig = orient(key2pos(shape.orig, state.boardSize), state.orientation, boardSize, !!state.flipFiles);
     if (shape.orig && shape.dest) {
       let brush: DrawBrush = brushes[shape.brush];
       if (shape.modifiers) brush = makeCustomBrush(brush, shape.modifiers);
       el = renderArrow(
         brush,
         orig,
-        orient(key2pos(shape.dest, state.boardSize), state.orientation, boardSize),
+        orient(key2pos(shape.dest, state.boardSize), state.orientation, boardSize, !!state.flipFiles),
         current,
         arrowDests[shape.dest] > 1,
         bounds,
@@ -222,8 +222,9 @@ function setAttributes(el: SVGElement, attrs: { [key: string]: any }): SVGElemen
   return el;
 }
 
-function orient(pos: cg.Pos, color: cg.Color, boardSize: cg.BoardSize): cg.Pos {
-  return color === 'white' ? pos : [(boardSize[0] / 2 + 1) - pos[0], (boardSize[1] + 1) - pos[1]];
+function orient(pos: cg.Pos, color: cg.Color, boardSize: cg.BoardSize, flipFiles: boolean = false): cg.Pos {
+  const oriented: cg.Pos = color === 'white' ? pos : [(boardSize[0] / 2 + 1) - pos[0], (boardSize[1] + 1) - pos[1]];
+  return flipFiles ? [oriented[0] + (oriented[1] % 2 !== 0 ? -0.5 : 0.5), oriented[1]] : oriented;
 }
 
 function makeCustomBrush(base: DrawBrush, modifiers: DrawModifiers): DrawBrush {

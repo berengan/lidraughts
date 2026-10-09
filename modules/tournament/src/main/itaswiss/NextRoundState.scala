@@ -4,15 +4,16 @@ package itaswiss
 import lidraughts.tournament.{ Pairing => TournamentPairing, PairingRepo, Tournament }
 import lidraughts.user.User
 
-/** Loads the exact games recorded by completed ItaSwiss rounds and builds the
-  * pairing state for the next round.
-  */
+/**
+ * Loads the exact games recorded by completed ItaSwiss rounds and builds the
+ * pairing state for the next round.
+ */
 private[tournament] object NextRoundState {
 
   def load(
-      tour: Tournament,
-      competitionNumbers: Map[Int, User.ID],
-      retiredAt: Map[Int, Int] = Map.empty
+    tour: Tournament,
+    competitionNumbers: Map[Int, User.ID],
+    retiredAt: Map[Int, Int] = Map.empty
   ): Fu[State] = {
     require(tour.system == System.ItaSwiss, "not an ItaSwiss tournament")
     val state = tour.itaSwiss.getOrElse(sys.error("missing ItaSwiss tournament state"))

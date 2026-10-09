@@ -1,13 +1,37 @@
 package views.html.base
 
 import lidraughts.api.Context
-import lidraughts.common.FederationConfig
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
 
 import controllers.routes
 
 object topnav {
+
+  // Optional Play config: lifidama.menu.<key> = true/false.
+  // Missing keys preserve the current menu defaults.
+  private object MenuDisplay {
+    private def enabled(key: String, default: Boolean): Boolean =
+      play.api.Play.current.configuration.getBoolean(s"lifidama.menu.$key").getOrElse(default)
+
+    def showPuzzleTraining = enabled("learn.puzzleTraining", false)
+    def showPractice = enabled("learn.practice", false)
+    def showCoordinates = enabled("learn.coordinates", false)
+    def showStudies = enabled("learn.studies", true)
+
+    def showWatch = enabled("watch.enabled", true)
+    def showTv = enabled("watch.tv", true)
+    def showCurrentGames = enabled("watch.currentGames", true)
+    def showStreamers = enabled("watch.streamers", true)
+    def showBroadcasts = enabled("watch.broadcasts", true)
+
+    def showCommunity = enabled("community.enabled", true)
+    def showPlayers = enabled("community.players", true)
+    def showTeams = enabled("community.teams", true)
+    def showForum = enabled("community.forum", true)
+    def showFaq = enabled("community.faq", false)
+    def showDonation = enabled("community.donation", false)
+  }
 
   private def linkTitle(url: String, name: Frag)(implicit ctx: Context) =
     if (ctx.blind) h3(name) else a(href := url)(name)
@@ -16,7 +40,7 @@ object topnav {
     st.section(
       linkTitle("/", frag(
         span(cls := "play")(trans.play()),
-        span(cls := "home")("lidraughts.org")
+        span(cls := "home")("LiFiDama")
       )),
       div(role := "group")(
         if (ctx.noBot) a(href := "/?any#hook")(trans.createAGame())
@@ -28,46 +52,37 @@ object topnav {
         )
       )
     ),
-    (FederationConfig.current.enabled && FederationConfig.current.allowsVariant(draughts.variant.Italian)) option st.section(
-      linkTitle(routes.Page.variant("italian").toString, span("Dama Italiana")),
-      div(role := "group")(
-        a(href := routes.Page.variant("italian"))("Regole della Dama Italiana"),
-        a(href := "/?any#hook")("Gioca a Dama Italiana"),
-        a(href := routes.Tournament.home())("Tornei di Dama Italiana")
-      )
-    ),
     st.section(
-      linkTitle(routes.Puzzle.home.toString, trans.learnMenu()),
+      linkTitle(routes.Page.variantHome.toString, trans.learnMenu()),
       div(role := "group")(
         ctx.noBot option frag(
           //a(href := routes.Learn.index)(trans.draughtsBasics()),
-          a(href := routes.Puzzle.home)(trans.training()),
-          a(href := routes.Practice.index)(trans.practice()),
-          a(href := routes.Coordinate.home)(trans.coordinates.coordinates())
+          MenuDisplay.showPuzzleTraining option a(href := routes.Puzzle.home)(trans.training()),
+          MenuDisplay.showPractice option a(href := routes.Practice.index)(trans.practice()),
+          MenuDisplay.showCoordinates option a(href := routes.Coordinate.home)(trans.coordinates.coordinates())
         ),
-        a(href := routes.Study.allDefault(1))(trans.studyMenu()),
+        MenuDisplay.showStudies option a(href := routes.Study.allDefault(1))(trans.studyMenu()),
         a(href := routes.Page.variantHome)(trans.rulesAndVariants())
       //a(href := routes.Coach.allDefault(1))(trans.coaches())
       )
     ),
-    st.section(
+    MenuDisplay.showWatch option st.section(
       linkTitle(routes.Tv.index.toString, trans.watch()),
       div(role := "group")(
-        a(href := routes.Tv.index)("Lidraughts TV"),
-        a(href := routes.Tv.games)(trans.currentGames()),
-        a(href := routes.Streamer.index())(trans.streamersMenu()),
-        a(href := routes.Relay.index())(trans.broadcast.broadcasts())
-      //ctx.noBot option a(href := routes.Video.index)(trans.videoLibrary())
+        MenuDisplay.showTv option a(href := routes.Tv.index)("LiFiDama TV"),
+        MenuDisplay.showCurrentGames option a(href := routes.Tv.games)(trans.currentGames()),
+        MenuDisplay.showStreamers option a(href := routes.Streamer.index())(trans.streamersMenu()),
+        MenuDisplay.showBroadcasts option a(href := routes.Relay.index())(trans.broadcast.broadcasts())
       )
     ),
-    st.section(
+    MenuDisplay.showCommunity option st.section(
       linkTitle(routes.User.list.toString, trans.community()),
       div(role := "group")(
-        a(href := routes.User.list)(trans.players()),
-        a(href := routes.Team.home())(trans.team.teams()),
-        NotForKids(a(href := routes.ForumCateg.index)(trans.forum())),
-        a(href := routes.Main.faq)(trans.faqMenu()),
-        ctx.me.exists(!_.kid) option
+        MenuDisplay.showPlayers option a(href := routes.User.list)(trans.players()),
+        MenuDisplay.showTeams option a(href := routes.Team.home())(trans.team.teams()),
+        MenuDisplay.showForum option NotForKids(a(href := routes.ForumCateg.index)(trans.forum())),
+        MenuDisplay.showFaq option a(href := routes.Main.faq)(trans.faqMenu()),
+        (MenuDisplay.showDonation && ctx.me.exists(!_.kid)) option
           a(cls := "community-patron", href := routes.Plan.index)(trans.patron.donate())
       )
     ),

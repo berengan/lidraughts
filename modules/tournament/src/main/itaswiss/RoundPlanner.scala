@@ -2,21 +2,22 @@ package lidraughts.tournament.itaswiss
 
 import draughts.{ OpeningTable, StartingPosition }
 
-/** Pure orchestration of one complete ItaSwiss round decision.
-  *
-  * Persistence and Game creation stay outside this class. This keeps the
-  * certified pairing algorithm testable while producing one atomic plan
-  * containing pairings, rests, rotation anchor and the round opening.
-  */
+/**
+ * Pure orchestration of one complete ItaSwiss round decision.
+ *
+ * Persistence and Game creation stay outside this class. This keeps the
+ * certified pairing algorithm testable while producing one atomic plan
+ * containing pairings, rests, rotation anchor and the round opening.
+ */
 object RoundPlanner {
 
   case class Plan(round: Round, nextState: TournamentState)
 
   def plan(
-      tournamentState: TournamentState,
-      pairingState: State,
-      openingTable: Option[OpeningTable],
-      chooseOpeningIndex: Int => Int = scala.util.Random.nextInt
+    tournamentState: TournamentState,
+    pairingState: State,
+    openingTable: Option[OpeningTable],
+    chooseOpeningIndex: Int => Int = scala.util.Random.nextInt
   ): Plan = {
     require(tournamentState.canGenerateNextRound, "Italian Swiss round cannot be generated yet")
     require(pairingState.format == tournamentState.format, "Italian Swiss format mismatch")

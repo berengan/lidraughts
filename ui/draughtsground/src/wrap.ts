@@ -23,6 +23,7 @@ export default function wrap(element: HTMLElement, s: State, relative: boolean):
   // add that class yourself to the element before calling draughtsground
   // for a slight performance improvement! (avoids recomputing style)
   element.classList.add('cg-wrap');
+  element.classList.toggle('italian-board', !!s.flipFiles);
   
   colors.forEach(c => element.classList.toggle('orientation-' + c, s.orientation === c));
   element.classList.toggle('manipulable', !s.viewOnly);
@@ -94,7 +95,7 @@ function renderFieldnumbers(element: HTMLElement, s: State, bounds: ClientRect) 
       k = allKeys[f - 1];
     field.textContent = s.coordSystem === 1 ? san2alg[san] : san;
     field.cgKey = k;
-    const coords = posToTranslateAbs(bounds, s.boardSize)(key2pos(k, s.boardSize), asWhite, 0);
+    const coords = posToTranslateAbs(bounds, s.boardSize, s.flipFiles)(key2pos(k, s.boardSize), asWhite, 0);
     translateAbs(field, [coords['0'], coords['1']]);
     element.appendChild(field);
   }

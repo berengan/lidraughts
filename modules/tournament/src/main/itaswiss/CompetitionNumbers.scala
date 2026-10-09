@@ -3,10 +3,11 @@ package itaswiss
 
 import lidraughts.user.User
 
-/** FID competition numbers are drawn once and then remain stable for the
-  * whole tournament. Randomness is injected so the draw is deterministic in
-  * tests and does not depend on Arena ranking.
-  */
+/**
+ * FID competition numbers are drawn once and then remain stable for the
+ * whole tournament. Randomness is injected so the draw is deterministic in
+ * tests and does not depend on Arena ranking.
+ */
 object CompetitionNumbers {
 
   def draw(userIds: List[User.ID], shuffle: List[User.ID] => List[User.ID] = ids => scala.util.Random.shuffle(ids)): List[CompetitionPlayer] = {

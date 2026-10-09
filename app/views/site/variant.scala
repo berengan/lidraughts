@@ -24,8 +24,7 @@ object variant {
     div(cls := "body")(raw(~doc.getHtml("variant.content", resolver)))
   )
 
-  // Italian has no separate PerfType/Prismic entry yet. Provide a local rules
-  // landing page without changing rating persistence or historical games.
+  // Dedicated FID rules page. Keep this separate from the generic variant page.
   def italian()(implicit ctx: Context) = layout(
     title = "Dama Italiana",
     klass = "box-pad page variant",
@@ -50,8 +49,7 @@ object variant {
       div(cls := "body box__pad")(
         if (FederationConfig.current.enabled && FederationConfig.current.defaultVariant == draughts.variant.Italian)
           p("Regole e varianti abilitate per questa federazione.")
-        else p(trans.standardFmjdRegulationsWithDrawingRules()),
-        p(trans.exploreDraughtsVariants())
+        else p(trans.standardFmjdRegulationsWithDrawingRules())
       ),
       div(cls := "variants")(
         FederationConfig.current.allowsVariant(draughts.variant.Italian) option
@@ -59,8 +57,8 @@ object variant {
             span(h2("Dama Italiana"), h3(cls := "headline")("Regole italiane 8×8"))
           ),
         lidraughts.rating.PerfType.variantsPlus.filter(pt =>
-          FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))
-        ) map { pt =>
+          pt != lidraughts.rating.PerfType.Italian &&
+            FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))) map { pt =>
           val variant = lidraughts.rating.PerfType variantOf pt
           a(cls := "variant text box__pad", href := routes.Page.variant(pt.key), dataIcon := pt.iconChar)(
             span(
@@ -91,8 +89,8 @@ object variant {
             dataIcon := "g"
           )("Dama Italiana"),
           lidraughts.rating.PerfType.variantsPlus.filter(pt =>
-            FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))
-          ) map { pt =>
+            pt != lidraughts.rating.PerfType.Italian &&
+              FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))) map { pt =>
             a(
               cls := List("text" -> true, "active" -> active.has(pt)),
               href := routes.Page.variant(pt.key),

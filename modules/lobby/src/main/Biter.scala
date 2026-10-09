@@ -89,19 +89,19 @@ private[lobby] object Biter {
 
   def canJoin(hook: Hook, user: Option[LobbyUser]): Boolean =
     FederationConfig.current.allowsGameVariant(hook.realVariant) &&
-    (hook.isAuth == user.isDefined || user.isDefined && !hook.isAuth) && user.fold(true) { u =>
-      u.lame == hook.lame &&
-        !hook.userId.contains(u.id) &&
-        !hook.userId.??(u.blocking.contains) &&
-        !hook.user.??(_.blocking).contains(u.id) &&
-        hook.realRatingRange.fold(true) { range =>
-          (hook.perfType map u.ratingAt) ?? range.contains
-        }
-    }
+      (hook.isAuth == user.isDefined || user.isDefined && !hook.isAuth) && user.fold(true) { u =>
+        u.lame == hook.lame &&
+          !hook.userId.contains(u.id) &&
+          !hook.userId.??(u.blocking.contains) &&
+          !hook.user.??(_.blocking).contains(u.id) &&
+          hook.realRatingRange.fold(true) { range =>
+            (hook.perfType map u.ratingAt) ?? range.contains
+          }
+      }
 
   def canJoin(seek: Seek, user: LobbyUser): Boolean =
     FederationConfig.current.allowsGameVariant(seek.realVariant) &&
-    seek.user.id != user.id &&
+      seek.user.id != user.id &&
       (seek.realMode.casual || user.lame == seek.user.lame) &&
       !(user.blocking contains seek.user.id) &&
       !(seek.user.blocking contains user.id) &&

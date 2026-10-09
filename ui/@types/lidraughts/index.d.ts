@@ -171,7 +171,7 @@ interface WebAssemblyStatic {
 
 //declare var WebAssembly: WebAssemblyStatic | undefined;
 
-declare type VariantKey = 'standard' | 'antidraughts' | 'breakthrough' | 'russian' | 'brazilian' | 'fromPosition' | 'frisian' | 'frysk' | 'atomic'
+declare type VariantKey = 'standard' | 'antidraughts' | 'breakthrough' | 'russian' | 'italian' | 'brazilian' | 'fromPosition' | 'frisian' | 'frysk' | 'atomic'
 
 declare type Speed = 'bullet' | 'blitz' | 'classical' | 'correspondence' | 'unlimited'
 

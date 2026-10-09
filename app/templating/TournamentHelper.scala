@@ -56,7 +56,7 @@ trait TournamentHelper { self: I18nHelper with DateHelper with UserHelper =>
   }
 
   def systemName(sys: System)(implicit ctx: UserContext) = sys match {
-    case System.Arena    => System.Arena.toString
+    case System.Arena => System.Arena.toString
     case System.ItaSwiss => "Italo-Svizzero FID"
   }
 

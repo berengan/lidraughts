@@ -63,29 +63,30 @@ export const distanceSq = (pos1: cg.Pos, pos2: cg.Pos): number => {
 export const samePiece: (p1: cg.Piece, p2: cg.Piece) => boolean = (p1, p2) =>
   p1.role === p2.role && p1.color === p2.color;
 
-const posToTranslateBase: (pos: cg.Pos, boardSize: cg.BoardSize, asWhite: boolean, xFactor: number, yFactor: number, shift: number) => cg.NumberPair =
-  (pos, boardSize, asWhite, xFactor, yFactor, shift: number) => {
+const posToTranslateBase = (pos: cg.Pos, boardSize: cg.BoardSize, asWhite: boolean, xFactor: number, yFactor: number, shift: number, flipFiles: boolean = false): cg.NumberPair => {
     const xf = boardSize[0] / 2 - 0.5;
     if (shift !== 0) {
+      const x = (!asWhite ? xf - ((shift - 0.5) + pos[0]) : (shift - 0.5) + pos[0]) * xFactor;
       return [
-        (!asWhite ? xf - ((shift - 0.5) + pos[0]) : (shift - 0.5) + pos[0]) * xFactor,
+        flipFiles ? x + (((asWhite ? pos[1] : boardSize[1] + 1 - pos[1]) % 2 !== 0) ? -xFactor / 2 : xFactor / 2) : x,
         (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
       ];
     } else {
+      const x = (!asWhite ? xf - ((pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) : (pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) * xFactor;
       return [
-        (!asWhite ? xf - ((pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) : (pos[1] % 2 !== 0 ? -0.5 : -1.0) + pos[0]) * xFactor,
+        flipFiles ? x + (((asWhite ? pos[1] : boardSize[1] + 1 - pos[1]) % 2 !== 0) ? -xFactor / 2 : xFactor / 2) : x,
         (!asWhite ? boardSize[1] - pos[1] : pos[1] - 1.0) * yFactor
       ];
     }
   }
 
-export const posToTranslateAbs = (bounds: ClientRect, boardSize: cg.BoardSize) => {
+export const posToTranslateAbs = (bounds: ClientRect, boardSize: cg.BoardSize, flipFiles: boolean = false) => {
   const xFactor = bounds.width / (boardSize[0] / 2), yFactor = bounds.height / boardSize[1];
-  return (pos: cg.Pos, asWhite: boolean, shift: number) => posToTranslateBase(pos, boardSize, asWhite, xFactor, yFactor, shift);
+  return (pos: cg.Pos, asWhite: boolean, shift: number) => posToTranslateBase(pos, boardSize, asWhite, xFactor, yFactor, shift, flipFiles);
 };
 
-export const posToTranslateRel = (boardSize: cg.BoardSize) => {
-  return (pos: cg.Pos, asWhite: boolean, shift: number) => posToTranslateBase(pos, boardSize, asWhite, 2 * 100 / boardSize[0], 100 / boardSize[1], shift);
+export const posToTranslateRel = (boardSize: cg.BoardSize, flipFiles: boolean = false) => {
+  return (pos: cg.Pos, asWhite: boolean, shift: number) => posToTranslateBase(pos, boardSize, asWhite, 2 * 100 / boardSize[0], 100 / boardSize[1], shift, flipFiles);
 }
 /**
  * Modifies dom element style with asolute value (translate attribute, amount of pixels)

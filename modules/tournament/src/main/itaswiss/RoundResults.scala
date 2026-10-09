@@ -7,11 +7,11 @@ import lidraughts.user.User
 object RoundResults {
 
   def nextState(
-      tournamentState: TournamentState,
-      playerCount: Int,
-      competitionNumbers: Map[Int, User.ID],
-      completedPairings: List[TournamentPairing],
-      retiredAt: Map[Int, Int] = Map.empty
+    tournamentState: TournamentState,
+    playerCount: Int,
+    competitionNumbers: Map[Int, User.ID],
+    completedPairings: List[TournamentPairing],
+    retiredAt: Map[Int, Int] = Map.empty
   ): State = {
     require(tournamentState.currentRound.exists(_.complete), "Italian Swiss current round is not complete")
     require(!tournamentState.finished, "Italian Swiss tournament is finished")
@@ -44,9 +44,9 @@ object RoundResults {
   }
 
   def scores(
-      tournamentState: TournamentState,
-      competitionNumbers: Map[Int, User.ID],
-      completedPairings: List[TournamentPairing]
+    tournamentState: TournamentState,
+    competitionNumbers: Map[Int, User.ID],
+    completedPairings: List[TournamentPairing]
   ): Map[User.ID, Int] = {
     val numberByUser = competitionNumbers.map(_.swap)
     val gameScores = accumulatedGameScores(numberByUser, completedPairings)
@@ -66,8 +66,8 @@ object RoundResults {
   }
 
   private def accumulatedGameScores(
-      numberByUser: Map[User.ID, Int],
-      pairings: List[TournamentPairing]
+    numberByUser: Map[User.ID, Int],
+    pairings: List[TournamentPairing]
   ): Map[Int, Double] =
     pairings.foldLeft(Map.empty[Int, Double]) { (scores, pairing) =>
       require(pairing.finished, "unfinished game in completed ItaSwiss rounds")

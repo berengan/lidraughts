@@ -1,9 +1,10 @@
 package lidraughts.tournament
 package itaswiss
 
-/** Synchronizes Lidraughts Player.withdraw with the persistent FID retirement
-  * round. The first observed withdrawal round is immutable.
-  */
+/**
+ * Synchronizes Lidraughts Player.withdraw with the persistent FID retirement
+ * round. The first observed withdrawal round is immutable.
+ */
 private[tournament] object RetirementService {
 
   def retire(tour: Tournament, userId: lidraughts.user.User.ID): Fu[TournamentState] = {

@@ -6,7 +6,8 @@ import * as cg from './types'
 
 export interface Config {
   fen?: cg.FEN; // draughts position in Forsyth notation
-  boardSize?: cg.BoardSize; // board size (width / height)
+  boardSize?: cg.BoardSize;
+  flipFiles?: boolean; // Mirror playable fields horizontally (Italian draughts). // board size (width / height)
   orientation?: cg.Color; // board orientation. white | black
   turnColor?: cg.Color; // turn to play. white | black
   captureLength?: number; //Amount of forced captures in this turn

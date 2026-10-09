@@ -37,23 +37,23 @@ private[setup] final class Processor(
     import Processor.HookResult._
     if (!FederationConfig.current.allowsGameVariant(configBase.variant)) fuccess(Refused)
     else {
-    val config = configBase.fixColor
-    (if (save) saveConfig(_ withHook config) else funit) >> {
-      config.hook(uid, ctx.me, sid, blocking) match {
-        case Left(hook) => fuccess {
-          bus.publish(AddHook(hook), 'lobbyTrouper)
-          Created(hook.id)
-        }
-        case Right(Some(seek)) => ctx.userId.??(gameCache.nbPlaying) map { nbPlaying =>
-          if (nbPlaying >= maxPlaying) Refused
-          else {
-            bus.publish(AddSeek(seek), 'lobbyTrouper)
-            Created(seek.id)
+      val config = configBase.fixColor
+      (if (save) saveConfig(_ withHook config) else funit) >> {
+        config.hook(uid, ctx.me, sid, blocking) match {
+          case Left(hook) => fuccess {
+            bus.publish(AddHook(hook), 'lobbyTrouper)
+            Created(hook.id)
           }
+          case Right(Some(seek)) => ctx.userId.??(gameCache.nbPlaying) map { nbPlaying =>
+            if (nbPlaying >= maxPlaying) Refused
+            else {
+              bus.publish(AddSeek(seek), 'lobbyTrouper)
+              Created(seek.id)
+            }
+          }
+          case _ => fuccess(Refused)
         }
-        case _ => fuccess(Refused)
       }
-    }
     }
   }
 

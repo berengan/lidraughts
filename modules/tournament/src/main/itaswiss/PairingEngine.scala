@@ -25,13 +25,15 @@ case class State(
     scores: Map[Int, Double],
     history: Map[Int, RoundHistory] = Map.empty,
     format: Format = Format.Art2,
-    retiredAt: Map[Int, Int] = Map.empty)
+    retiredAt: Map[Int, Int] = Map.empty
+)
 case class Result(round: Int, pairings: List[Pairing], rests: List[Rest], retired: List[Int], pairingStartNumber: Int)
 
-/** Pure FID Italian-Swiss pairing engine.
-  * Scala port of the certified KosmosWeb ItaSwissFIDPairingEngine.
-  * Player ids are initial competition numbers (1..N), hence circular rotation order.
-  */
+/**
+ * Pure FID Italian-Swiss pairing engine.
+ * Scala port of the certified KosmosWeb ItaSwissFIDPairingEngine.
+ * Player ids are initial competition numbers (1..N), hence circular rotation order.
+ */
 object PairingEngine {
   private sealed trait Flag
   private case object Free extends Flag
@@ -78,9 +80,9 @@ object PairingEngine {
         else {
           val eligible = (1 to n).filter { p =>
             !isRetiredBefore(s, p, round) &&
-            !hasRMR(s, p, round - 1) &&
-            flags(p) != TurnRest &&
-            (numRetired(s, round) == 0 || retiredPlayers(s, round).exists(r => !played(s, p, r, round - 1)))
+              !hasRMR(s, p, round - 1) &&
+              flags(p) != TurnRest &&
+              (numRetired(s, round) == 0 || retiredPlayers(s, round).exists(r => !played(s, p, r, round - 1)))
           }
           if (eligible.size == 1) flags += eligible.head -> Resting
           else if (eligible.nonEmpty) {
@@ -258,16 +260,18 @@ object PairingEngine {
     else RestType.RM
 
   private def played(s: State, a: Int, b: Int, before: Int): Boolean =
-    s.history.exists { case (r, h) =>
-      r <= before && h.pairings.exists(p => (p.white == a && p.black == b) || (p.white == b && p.black == a))
+    s.history.exists {
+      case (r, h) =>
+        r <= before && h.pairings.exists(p => (p.white == a && p.black == b) || (p.white == b && p.black == a))
     }
 
   private def hasRT(s: State, p: Int, before: Int): Boolean =
     s.history.exists { case (r, h) => r <= before && h.rests.exists(x => x.player == p && x.restType == RestType.RT) }
 
   private def hasRMR(s: State, p: Int, before: Int): Boolean =
-    s.history.exists { case (r, h) =>
-      r <= before && h.rests.exists(x => x.player == p && (x.restType == RestType.RM || x.restType == RestType.RR))
+    s.history.exists {
+      case (r, h) =>
+        r <= before && h.rests.exists(x => x.player == p && (x.restType == RestType.RM || x.restType == RestType.RR))
     }
 
   private def art9RestCount(s: State, round: Int): Int =

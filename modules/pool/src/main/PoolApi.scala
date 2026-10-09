@@ -29,12 +29,12 @@ final class PoolApi(
   def join(poolId: PoolConfig.Id, joiner: Joiner) =
     if (FederationConfig.current.allowsGameVariant(draughts.variant.Standard))
       playbanApi.hasCurrentBan(joiner.userId) foreach {
-      case false => actors foreach {
-        case (id, actor) if id == poolId => playbanApi.getRageSit(joiner.userId).foreach(actor ! Join(joiner, _))
-        case (_, actor) => actor ! Leave(joiner.userId)
+        case false => actors foreach {
+          case (id, actor) if id == poolId => playbanApi.getRageSit(joiner.userId).foreach(actor ! Join(joiner, _))
+          case (_, actor) => actor ! Leave(joiner.userId)
+        }
+        case _ =>
       }
-      case _ =>
-    }
 
   def leave(poolId: PoolConfig.Id, userId: User.ID) = sendTo(poolId, Leave(userId))
 

@@ -59,7 +59,25 @@ export function unsetPredrop(state: State): void {
   }
 }
 
-export function calcCaptKey(pieces: cg.Pieces, boardSize: cg.BoardSize, startX: number, startY: number, destX: number, destY: number): cg.Key | undefined {
+export function calcCaptKey(pieces: cg.Pieces, boardSize: cg.BoardSize, startX: number, startY: number, destX: number, destY: number, flipFiles: boolean = false): cg.Key | undefined {
+
+  // Italian 8x8 uses FID numbering on dark squares starting at a8.
+  // Calculate the captured square in physical board coordinates, not in
+  // compressed (four-fields-per-row) coordinates.
+  if (flipFiles && boardSize[0] === 8 && boardSize[1] === 8) {
+    const physicalX = (x: number, y: number) => 2 * (x - 1) + (y % 2 === 1 ? 0 : 1);
+    const x0 = physicalX(startX, startY), x1 = physicalX(destX, destY);
+    const dx = Math.sign(x1 - x0), dy = Math.sign(destY - startY);
+    if (!dx || !dy || Math.abs(x1 - x0) !== Math.abs(destY - startY)) return undefined;
+    for (let x = x0 + dx, y = startY + dy; x !== x1; x += dx, y += dy) {
+      if (x < 0 || x >= 8 || y < 1 || y > 8 || (x + y - 1) % 2 !== 0) return undefined;
+      const field = (y - 1) * 4 + Math.floor(x / 2) + 1;
+      const key = (field < 10 ? '0' + field : String(field)) as cg.Key;
+      const piece = pieces[key];
+      if (piece && piece.role !== 'ghostman' && piece.role !== 'ghostking') return key;
+    }
+    return undefined;
+  }
 
   const xDiff: number = destX - startX, yDiff: number = destY - startY;
 
@@ -108,7 +126,7 @@ export function baseMove(state: State, orig: cg.Key, dest: cg.Key, finishCapture
   const isCapture = (state.movable.captLen && state.movable.captLen > 0), bs = state.boardSize;
   const captureUci = isCapture && state.movable.captureUci && inArray(state.movable.captureUci, (uci: string) => uci.slice(0, 2) === orig && uci.slice(-2) === dest);
   const origPos: cg.Pos = key2pos(orig, bs), destPos: cg.Pos = captureUci ? key2pos(captureUci.slice(2, 4) as cg.Key, bs) : key2pos(dest, bs);
-  const captKey: cg.Key | undefined = isCapture ? calcCaptKey(state.pieces, bs, origPos[0], origPos[1], destPos[0], destPos[1]) : undefined;
+  const captKey: cg.Key | undefined = isCapture ? calcCaptKey(state.pieces, bs, origPos[0], origPos[1], destPos[0], destPos[1], state.flipFiles) : undefined;
   const captPiece: cg.Piece | undefined = (isCapture && captKey) ? state.pieces[captKey] : undefined;
   const origPiece = state.pieces[orig];
 
@@ -138,7 +156,7 @@ export function baseMove(state: State, orig: cg.Key, dest: cg.Key, finishCapture
     for (let s = 2; s + 4 <= captureUci.length; s += 2) {
       const nextOrig = key2pos(captureUci.slice(s, s + 2) as cg.Key, bs), 
         nextDest = key2pos(captureUci.slice(s + 2, s + 4) as cg.Key, bs),
-        nextCapt = calcCaptKey(state.pieces, bs, nextOrig[0], nextOrig[1], nextDest[0], nextDest[1]);
+        nextCapt = calcCaptKey(state.pieces, bs, nextOrig[0], nextOrig[1], nextDest[0], nextDest[1], state.flipFiles);
       if (nextCapt) {
         delete state.pieces[nextCapt];
       }
@@ -295,7 +313,7 @@ export function selectSquare(state: State, key: cg.Key, force?: boolean): void {
 export function setSelected(state: State, key: cg.Key): void {
   state.selected = key;
   if (isPremovable(state, key)) {
-    state.premovable.dests = premove(state.pieces, state.boardSize, key, state.premovable.variant);
+    state.premovable.dests = premove(state.pieces, state.boardSize, key, state.premovable.variant, state.flipFiles);
   }
   else state.premovable.dests = undefined;
 }
@@ -340,7 +358,7 @@ function isPremovable(state: State, orig: cg.Key): boolean {
 function canPremove(state: State, orig: cg.Key, dest: cg.Key): boolean {
   return orig !== dest &&
     isPremovable(state, orig) &&
-    containsX(premove(state.pieces, state.boardSize, orig, state.premovable.variant), dest);
+    containsX(premove(state.pieces, state.boardSize, orig, state.premovable.variant, state.flipFiles), dest);
 }
 
 function canPredrop(state: State, orig: cg.Key, dest: cg.Key): boolean {
@@ -414,12 +432,13 @@ export function stop(state: State): void {
   cancelMove(state);
 }
 
-export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect): cg.Key | undefined {
+export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect, flipFiles: boolean = false): cg.Key | undefined {
 
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
   if (!asWhite) col = (boardSize[0] + 1) - col;
+  if (flipFiles) col += row % 2 !== 0 ? 1 : -1;
 
   // on odd rows we skip fields 1,3,5 etc and on even rows 2,4,6 etc
   if (row % 2 !== 0) {
@@ -432,12 +451,13 @@ export function getKeyAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWh
   return (col > 0 && col <= boardSize[0] / 2 && row > 0 && row <= boardSize[1]) ? pos2key([col, row], boardSize) : undefined;
 }
 
-export function unusedFieldAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect): boolean {
+export function unusedFieldAtDomPos(pos: cg.NumberPair, boardSize: cg.BoardSize, asWhite: boolean, bounds: ClientRect, flipFiles: boolean = false): boolean {
 
   let row = Math.ceil(boardSize[1] * ((pos[1] - bounds.top) / bounds.height));
   if (!asWhite) row = (boardSize[1] + 1) - row;
   let col = Math.ceil(boardSize[0] * ((pos[0] - bounds.left) / bounds.width));
   if (!asWhite) col = (boardSize[0] + 1) - col;
+  if (flipFiles) col += row % 2 !== 0 ? 1 : -1;
 
   if (row % 2 !== 0) {
     if (col % 2 !== 0) return true;

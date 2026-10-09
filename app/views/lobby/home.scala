@@ -5,9 +5,7 @@ import play.api.libs.json.{ Json, JsObject }
 import lidraughts.api.Context
 import lidraughts.app.templating.Environment._
 import lidraughts.app.ui.ScalatagsTemplate._
-import lidraughts.common.{ HTTPRequest, FederationConfig }
-import draughts.variant.Italian
-import lidraughts.setup.Config
+import lidraughts.common.HTTPRequest
 import lidraughts.common.String.html.safeJsonValue
 import lidraughts.game.Pov
 
@@ -37,7 +35,7 @@ object home {
   )(implicit ctx: Context) = views.html.base.layout(
     title = "",
     fullTitle = Some {
-      s"lidraughts.${if (isProd && !isStage) "org" else "dev"} • ${trans.freeOnlineDraughts.txt()}"
+      s"LiFiDama • ${trans.freeOnlineDraughts.txt()}"
     },
     moreJs = frag(
       jsAt(s"compiled/lidraughts.lobby${isProd ?? (".min")}.js", defer = true),
@@ -60,7 +58,7 @@ object home {
     draughtsground = false,
     openGraph = lidraughts.app.ui.OpenGraph(
       image = staticUrl("images/lidraughts-tile-wide.png").some,
-      title = "The best free, adless draughts server",
+      title = "LiFiDama - La dama online",
       url = netBaseUrl,
       description = trans.siteDescription.txt()
     ).some,
@@ -76,14 +74,12 @@ object home {
             a(href := routes.Setup.hookForm, cls := List(
               "button button-metal config_hook" -> true,
               "disabled" -> (playban.isDefined || currentGame.isDefined || ctx.isBot)
-            ), if (FederationConfig.current.enabled && FederationConfig.current.defaultVariant == Italian)
-              span("Gioca a Dama Italiana") else trans.createAGame()),
+            ), trans.createAGame()),
             a(href := routes.Setup.friendForm(none), cls := List(
               "button button-metal config_friend" -> true,
               "disabled" -> currentGame.isDefined
-            ), if (FederationConfig.current.enabled && FederationConfig.current.defaultVariant == Italian)
-              span("Sfida a Dama Italiana") else trans.playWithAFriend()),
-            Config.aiVariants.nonEmpty option a(href := routes.Setup.aiForm, cls := List(
+            ), trans.playWithAFriend()),
+            a(href := routes.Setup.aiForm, cls := List(
               "button button-metal config_ai" -> true,
               "disabled" -> currentGame.isDefined
             ), trans.playWithTheMachine())
@@ -103,16 +99,12 @@ object home {
           },
         div(cls := "lobby__side")(
           ctx.blind option h2("Highlights"),
-          ctx.noKid option st.section(cls := "lobby__streams")(views.html.streamer.bits liveStreams streams),
-          div(cls := "lobby__spotlights")(
+          (ctx.noKid && HomeDisplay.showStreams) option st.section(cls := "lobby__streams")(views.html.streamer.bits liveStreams streams),
+          HomeDisplay.showSpotlights option div(cls := "lobby__spotlights")(
             events.map(bits.spotlight),
             relays.map(bits.spotlight),
             !ctx.isBot option frag(
-              lidraughts.tournament.Spotlight.select(
-                tours.filter(t => FederationConfig.current.allowsTournament(t.system.key, t.variant)),
-                ctx.me,
-                (3 - events.size - relays.size) atLeast 1
-              ) map {
+              lidraughts.tournament.Spotlight.select(tours, ctx.me, (3 - events.size - relays.size) atLeast 1) map {
                 views.html.tournament.homepageSpotlight(_)
               },
               swisses.take(1) map views.html.swiss.bits.homepageSpotlight,
@@ -128,12 +120,12 @@ object home {
               // userTimeline.size >= 8 option
               userTimeline.nonEmpty option a(cls := "more", href := routes.Timeline.home)(trans.more(), " »")
             )
-          } getOrElse div(cls := "about-side")(
+          } getOrElse (HomeDisplay.showSideAbout option div(cls := "about-side")(
             ctx.blind option h2("About"),
-            trans.xIsAFreeYLibreOpenSourceDraughtsServer("Lidraughts", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
+            trans.xIsAFreeYLibreOpenSourceDraughtsServer("LiFiDama", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
             " ",
-            a(href := "/about")(trans.aboutX("Lidraughts"), "...")
-          )
+            a(href := "/about")(trans.aboutX("LiFiDama"), "...")
+          ))
         ),
         featured map { g =>
           div(cls := "lobby__tv")(
@@ -147,11 +139,8 @@ object home {
             span(cls := "text")(p.color.fold(trans.whitePlays, trans.blackPlays)())
           )
         },
-        ctx.noBot option bits.underboards(
-          tours.filter(t => FederationConfig.current.allowsTournament(t.system.key, t.variant)),
-          simuls, leaderboard, tournamentWinners
-        ),
-        ctx.noKid option div(cls := "lobby__forum lobby__box", dataUrl := routes.ForumPost.recent)(
+        (ctx.noBot && HomeDisplay.showUnderboards) option bits.underboards(tours, simuls, leaderboard, tournamentWinners),
+        (ctx.noKid && HomeDisplay.showForum) option div(cls := "lobby__forum lobby__box", dataUrl := routes.ForumPost.recent)(
           div(cls := "lobby__box__top")(
             h2(cls := "title text", dataIcon := "d")(trans.latestForumPosts()),
             a(cls := "more", href := routes.ForumCateg.index)(trans.more(), " »")
@@ -160,8 +149,8 @@ object home {
             views.html.forum.post recent forumRecent
           )
         ),
-        bits.lastPosts(lastPost),
-        div(cls := "lobby__support")(
+        bits.lastPosts(lastPost).filter(_ => HomeDisplay.showBlog),
+        HomeDisplay.showDonation option div(cls := "lobby__support")(
           a(href := routes.Plan.index)(
             iconTag(patronIconChar),
             span(cls := "lobby__support__text")(
@@ -177,15 +166,15 @@ object home {
             )
           )*/
         ),
-        div(cls := "lobby__about")(
+        HomeDisplay.showFooterLinks option div(cls := "lobby__about lifidama-footer")(
           ctx.blind option h2("About"),
-          a(href := "/about")(trans.aboutX("Lidraughts")),
-          a(href := "/faq")(trans.faqMenu()),
-          a(href := "/contact")(trans.contact()),
-          a(href := "/mobile")(trans.mobileApp()),
-          a(href := routes.Page.tos)(trans.termsOfService()),
-          a(href := routes.Page.privacy)(trans.privacy()),
-          a(href := "https://github.com/roepstoep/lidraughts")(trans.sourceCode())
+          a(href := "/about")(trans.aboutX("LiFiDama")),
+          HomeDisplay.showFaq option a(href := "/faq")(trans.faqMenu()),
+          HomeDisplay.showContact option a(href := "/contact")(trans.contact()),
+          HomeDisplay.showMobileApp option a(href := "/mobile")(trans.mobileApp()),
+          HomeDisplay.showLegalLinks option a(href := routes.Page.tos)(trans.termsOfService()),
+          HomeDisplay.showLegalLinks option a(href := routes.Page.privacy)(trans.privacy()),
+          HomeDisplay.showSourceCode option a(href := "https://github.com/berengan/lidraughts")(trans.sourceCode())
         )
       )
     }

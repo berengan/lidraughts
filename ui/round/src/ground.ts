@@ -20,10 +20,11 @@ export function makeConfig(ctrl: RoundController): Config {
     fen: step.fen,
     orientation: boardOrientation(data, ctrl.flip),
     boardSize: data.game.variant.board.size,
+    flipFiles: data.game.variant.key === 'italian',
     turnColor: (step.ply - (ghosts == 0 ? 0 : 1)) % 2 === 0 ? 'white' : 'black',
     lastMove: util.uci2move(step.uci),
     captureLength: data.captureLength,
-    coordinates: data.pref.coords,
+    coordinates: data.game.variant.key === 'italian' ? 1 : data.pref.coords,
     coordSystem: ctrl.coordSystem(),
     addPieceZIndex: ctrl.data.pref.is3d,
     highlight: {

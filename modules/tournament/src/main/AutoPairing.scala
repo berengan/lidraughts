@@ -15,11 +15,11 @@ final class AutoPairing(
     apply(tour, pairing, usersMap, ranking, none)
 
   private[tournament] def apply(
-      tour: Tournament,
-      pairing: Pairing,
-      usersMap: Map[User.ID, User],
-      ranking: Ranking,
-      roundOpening: Option[StartingPosition]
+    tour: Tournament,
+    pairing: Pairing,
+    usersMap: Map[User.ID, User],
+    ranking: Ranking,
+    roundOpening: Option[StartingPosition]
   ): Fu[Game] = {
     val user1 = usersMap get pairing.user1 err s"Missing pairing user1 $pairing"
     val user2 = usersMap get pairing.user2 err s"Missing pairing user2 $pairing"

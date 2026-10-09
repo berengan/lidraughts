@@ -5,12 +5,13 @@ import lidraughts.game.Game
 import lidraughts.tournament.{ Pairing => TournamentPairing }
 import lidraughts.user.UserRepo
 
-/** Executes an already validated ItaSwiss round plan using Lidraughts'
-  * native Pairing/Game infrastructure.
-  *
-  * Competition numbers come only from persistent TournamentState. They are
-  * drawn once and are never inferred again from Arena ranking order.
-  */
+/**
+ * Executes an already validated ItaSwiss round plan using Lidraughts'
+ * native Pairing/Game infrastructure.
+ *
+ * Competition numbers come only from persistent TournamentState. They are
+ * drawn once and are never inferred again from Arena ranking order.
+ */
 private[tournament] final class RoundService(autoPairing: AutoPairing) {
 
   case class Started(round: Round, games: List[Game])
@@ -62,9 +63,9 @@ private[tournament] final class RoundService(autoPairing: AutoPairing) {
     tour.itaSwiss.getOrElse(sys.error("missing ItaSwiss tournament state"))
 
   private def makePairings(
-      tour: Tournament,
-      round: Round,
-      competitionNumbers: Map[Int, lidraughts.user.User.ID]
+    tour: Tournament,
+    round: Round,
+    competitionNumbers: Map[Int, lidraughts.user.User.ID]
   ): Fu[List[TournamentPairing]] =
     round.pairings.map { p =>
       TournamentPairing

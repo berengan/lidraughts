@@ -205,7 +205,7 @@ object ItalianOpeningTable {
   val allTables = List(general, tableA, tableB, tableC, tableD)
 
   def lidraughtsField(fidField: Int): Int =
-    ((fidField - 1) / 4) * 4 + (4 - ((fidField - 1) % 4))
+    fidField
 
   private def fenAfter(moves: String): String = {
     var white = (21 to 32).toSet
@@ -229,7 +229,7 @@ object ItalianOpeningTable {
 
   private def capturedBetween(from: Int, to: Int): Option[Int] =
     for {
-      fromPos <- Pos64.posAt(from)
+      fromPos <- PosItalian.posAt(from)
       toPos <- Pos64.posAt(to)
       middle <- List(
         fromPos.moveUpLeft,
@@ -237,7 +237,7 @@ object ItalianOpeningTable {
         fromPos.moveDownLeft,
         fromPos.moveDownRight
       ).flatten.find { pos =>
-        List(pos.moveUpLeft, pos.moveUpRight, pos.moveDownLeft, pos.moveDownRight).flatten.contains(toPos)
-      }
+          List(pos.moveUpLeft, pos.moveUpRight, pos.moveDownLeft, pos.moveDownRight).flatten.contains(toPos)
+        }
     } yield middle.fieldNumber
 }

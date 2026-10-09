@@ -245,9 +245,10 @@ final private class TourFields(me: User, form: Form[_], existingVariant: Option[
     val systems = List(
       System.Arena -> "Arena",
       System.ItaSwiss -> "Italo-Svizzero FID"
-    ).filter { case (system, _) =>
-      !policy.enabled || policy.variantsForSystem(system.key).nonEmpty
-    }
+    ).filter {
+        case (system, _) =>
+          !policy.enabled || policy.variantsForSystem(system.key).nonEmpty
+      }
     val formats = List("" -> "—") ::: List(
       "ITA_SWISS_FID_ART2" -> "Art. 2",
       "ITA_SWISS_FID_ART8" -> "Art. 8",
@@ -256,13 +257,14 @@ final private class TourFields(me: User, form: Form[_], existingVariant: Option[
     frag(
       form3.group(form("tournamentType.system"), "Sistema torneo") { field =>
         st.select(id := form3.id(field), st.name := field.name, cls := "form-control")(
-          systems.map { case (system, label) =>
-            option(
-              value := system.id.toString,
-              attr("data-variants") := (if (policy.enabled)
-                policy.variantsForSystem(system.key).map(_.id).mkString(",") else ""),
-              field.value.has(system.id.toString) option selected
-            )(label)
+          systems.map {
+            case (system, label) =>
+              option(
+                value := system.id.toString,
+                attr("data-variants") := (if (policy.enabled)
+                  policy.variantsForSystem(system.key).map(_.id).mkString(",") else ""),
+                field.value.has(system.id.toString) option selected
+              )(label)
           }
         )
       },

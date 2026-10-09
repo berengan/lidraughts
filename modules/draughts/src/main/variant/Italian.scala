@@ -18,10 +18,10 @@ case object Italian extends Variant(
   shortName = "Italian",
   title = "Italian draughts: short-range kings and mandatory capture priorities.",
   standardInitialPosition = false,
-  boardSize = Board.D64
+  boardSize = Board.DItalian
 ) {
 
-  def pieces = Russian.pieces
+  def pieces = Variant.symmetricThreeRank(Vector(Man, Man, Man, Man), boardSize)
   def initialFen = Russian.initialFen
   def startingPosition = StartingPosition("---", initialFen, "", "Initial position".some)
   override val openingTables = ItalianOpeningTable.allTables
@@ -37,9 +37,9 @@ case object Italian extends Variant(
   // Men capture forward only. Kings capture in both directions.
   override def captureDirsFor(actor: Actor): Directions =
     actor.piece.role match {
-      case Man  => moveDirsColor(actor.color)
+      case Man => moveDirsColor(actor.color)
       case King => moveDirsAll
-      case _    => Nil
+      case _ => Nil
     }
 
   // In Italian draughts a man cannot capture a king.

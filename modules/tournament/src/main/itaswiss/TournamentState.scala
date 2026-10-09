@@ -3,11 +3,12 @@ package lidraughts.tournament.itaswiss
 import draughts.StartingPosition
 import lidraughts.user.User
 
-/** Persistent domain data needed by a round-based Italian Swiss tournament.
-  *
-  * This deliberately lives outside the Arena waiting-user model: ItaSwiss
-  * advances by completed rounds, not by continuously pairing idle users.
-  */
+/**
+ * Persistent domain data needed by a round-based Italian Swiss tournament.
+ *
+ * This deliberately lives outside the Arena waiting-user model: ItaSwiss
+ * advances by completed rounds, not by continuously pairing idle users.
+ */
 case class Round(
     number: Int,
     pairingStartNumber: Int,

@@ -1,0 +1,43 @@
+/*
+ * LiFiDama homepage presentation styling.
+ * Scoped to the lobby's "now playing" tab: no effect on real game boards.
+ */
+.lobby__app-now_playing {
+  height: auto;
+  max-height: none;
+
+  .lobby__app__content {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow: visible;
+    background: $c-bg-box;
+    background-image: none;
+    padding: 1rem;
+  }
+
+  .now-playing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 470px;
+    margin: 0 auto;
+    gap: .75rem;
+
+    > a {
+      display: block;
+      min-width: 0;
+      padding: 0;
+    }
+
+    .mini-board {
+      width: 100%;
+      max-width: 470px;
+      margin: 0 auto;
+    }
+
+    .meta {
+      padding: .4rem 0;
+      font-size: 1.05em;
+    }
+  }
+}

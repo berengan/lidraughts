@@ -3,10 +3,11 @@ package lidraughts.tournament.itaswiss
 import reactivemongo.bson._
 import draughts.StartingPosition
 
-/** BSON representation kept separate from the legacy Tournament document.
-  * It can be embedded under the optional "itaSwiss" field without changing
-  * how existing Arena tournaments are decoded.
-  */
+/**
+ * BSON representation kept separate from the legacy Tournament document.
+ * It can be embedded under the optional "itaSwiss" field without changing
+ * how existing Arena tournaments are decoded.
+ */
 private[tournament] object BSONHandlers {
 
   private def restTypeKey(restType: RestType) = restType match {
