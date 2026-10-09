@@ -8,6 +8,16 @@ import controllers.routes
 
 object topnav {
 
+  // Demo menu switches: disabled features remain available in the codebase.
+  private object MenuDisplay {
+    val showPuzzleTraining = true
+    val showPractice = false
+    val showCoordinates = false
+    val showStudies = true
+    val showFaq = false
+    val showDonation = false
+  }
+
   private def linkTitle(url: String, name: Frag)(implicit ctx: Context) =
     if (ctx.blind) h3(name) else a(href := url)(name)
 
@@ -32,11 +42,11 @@ object topnav {
       div(role := "group")(
         ctx.noBot option frag(
           //a(href := routes.Learn.index)(trans.draughtsBasics()),
-          a(href := routes.Puzzle.home)(trans.training()),
-          a(href := routes.Practice.index)(trans.practice()),
-          a(href := routes.Coordinate.home)(trans.coordinates.coordinates())
+          MenuDisplay.showPuzzleTraining option a(href := routes.Puzzle.home)(trans.training()),
+          MenuDisplay.showPractice option a(href := routes.Practice.index)(trans.practice()),
+          MenuDisplay.showCoordinates option a(href := routes.Coordinate.home)(trans.coordinates.coordinates())
         ),
-        a(href := routes.Study.allDefault(1))(trans.studyMenu()),
+        MenuDisplay.showStudies option a(href := routes.Study.allDefault(1))(trans.studyMenu()),
         a(href := routes.Page.variantHome)(trans.rulesAndVariants())
       //a(href := routes.Coach.allDefault(1))(trans.coaches())
       )
@@ -57,8 +67,8 @@ object topnav {
         a(href := routes.User.list)(trans.players()),
         a(href := routes.Team.home())(trans.team.teams()),
         NotForKids(a(href := routes.ForumCateg.index)(trans.forum())),
-        a(href := routes.Main.faq)(trans.faqMenu()),
-        ctx.me.exists(!_.kid) option
+        MenuDisplay.showFaq option a(href := routes.Main.faq)(trans.faqMenu()),
+        (MenuDisplay.showDonation && ctx.me.exists(!_.kid)) option
           a(cls := "community-patron", href := routes.Plan.index)(trans.patron.donate())
       )
     ),
