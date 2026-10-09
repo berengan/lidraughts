@@ -10,7 +10,7 @@ object topnav {
 
   // Demo menu switches: disabled features remain available in the codebase.
   private object MenuDisplay {
-    val showPuzzleTraining = true
+    val showPuzzleTraining = false
     val showPractice = false
     val showCoordinates = false
     val showStudies = true
@@ -38,7 +38,7 @@ object topnav {
       )
     ),
     st.section(
-      linkTitle(routes.Puzzle.home.toString, trans.learnMenu()),
+      linkTitle(routes.Page.variantHome.toString, trans.learnMenu()),
       div(role := "group")(
         ctx.noBot option frag(
           //a(href := routes.Learn.index)(trans.draughtsBasics()),
