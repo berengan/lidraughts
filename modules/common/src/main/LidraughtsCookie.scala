@@ -5,11 +5,6 @@ import play.api.mvc.{ Cookie, DiscardingCookie, Session, RequestHeader }
 
 object LidraughtsCookie {
 
-  private val domainRegex = """\.[^.]++\.[^.]++$""".r
-
-  private def domain(req: RequestHeader): String =
-    domainRegex.findFirstIn(req.domain).getOrElse(req.domain)
-
   val sessionId = "sid"
 
   def makeSessionId(implicit req: RequestHeader) = session(sessionId, Random secureString 22)
@@ -30,11 +25,11 @@ object LidraughtsCookie {
     value,
     maxAge orElse Session.maxAge orElse 86400.some,
     "/",
-    domain(req).some,
+    None,
     Session.secure || req.headers.get("X-Forwarded-Proto").contains("https"),
     httpOnly | Session.httpOnly
   )
 
   def discard(name: String)(implicit req: RequestHeader) =
-    DiscardingCookie(name, "/", domain(req).some, Session.httpOnly)
+    DiscardingCookie(name, "/", None, Session.httpOnly)
 }
