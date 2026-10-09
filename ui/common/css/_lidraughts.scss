@@ -36,3 +36,6 @@
 @import 'component/loader';
 @import 'component/reconnecting';
 @import 'component/announce';
+
+/* Optional federation presentation layer; rules are scoped to body.lifidama-fid. */
+@import 'lifidama/theme';
