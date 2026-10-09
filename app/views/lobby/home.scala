@@ -124,7 +124,7 @@ object home {
             ctx.blind option h2("About"),
             trans.xIsAFreeYLibreOpenSourceDraughtsServer("LiFiDama", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
             " ",
-            a(href := "/about")(trans.aboutX("LiFiDama", "...")
+            a(href := "/about")(trans.aboutX("LiFiDama"), "...")
           )
         ),
         featured map { g =>
@@ -168,7 +168,7 @@ object home {
         ),
         div(cls := "lobby__about")(
           ctx.blind option h2("About"),
-          a(href := "/about")(trans.aboutX("Lidraughts")),
+          a(href := "/about")(trans.aboutX("LiFiDama")),
           a(href := "/faq")(trans.faqMenu()),
           a(href := "/contact")(trans.contact()),
           a(href := "/mobile")(trans.mobileApp()),
