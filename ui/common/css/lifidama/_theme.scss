@@ -1,0 +1,97 @@
+/*
+ * LiFiDama FID visual theme, opt-in via lifidama.theme.enabled.
+ * Scoped to the body class so legacy Lidraughts themes remain intact.
+ * Brand colors are an initial palette; verify against the current FID manual.
+ */
+body.lifidama-fid {
+  --fid-blue: #18407c;
+  --fid-blue-deep: #102d57;
+  --fid-teal: #00a99c;
+  --fid-teal-hover: #008b81;
+  --fid-canvas: #f4f6fa;
+  --fid-ink: #24364b;
+  --fid-border: #dce5ee;
+  --fid-radius: 10px;
+  --fid-shadow: 0 5px 22px rgba(16, 45, 87, .09);
+
+  background-color: var(--fid-canvas);
+  background-image: none;
+
+  #top {
+    max-width: none;
+    padding: 0 clamp(.6rem, 2vw, 2rem);
+    box-sizing: border-box;
+    background: linear-gradient(110deg, var(--fid-blue-deep), var(--fid-blue));
+    color: #fff;
+    box-shadow: 0 3px 16px rgba(16, 45, 87, .18);
+  }
+
+  .site-title {
+    text-shadow: none;
+    a, a:visited, a:hover { color: #fff; }
+    .brand-wordmark {
+      color: #fff;
+      small { color: #d5e9f4; }
+    }
+    .fid-logo {
+      background: #fff;
+      border-radius: 6px;
+      padding: 3px;
+      box-sizing: border-box;
+    }
+  }
+
+  #topnav {
+    section > a { color: #f3f8fc; text-shadow: none; }
+    section:hover > a, section:active > a { color: var(--fid-blue-deep); }
+    div {
+      border-left-color: var(--fid-teal);
+      box-shadow: var(--fid-shadow);
+      a:hover { background: var(--fid-blue); color: #fff; }
+    }
+  }
+
+  #top .link, #top .toggle { color: #fff; }
+  #top .signin.button-empty { color: #fff; border: 1px solid rgba(255, 255, 255, .55); }
+  #top .signin.button-empty:hover { background: rgba(255, 255, 255, .13); }
+
+  .button:not(.button-red):not(.button-green):not(.button-empty):not(.button-metal) {
+    background: var(--fid-blue);
+    color: #fff;
+    border-radius: 7px;
+    box-shadow: none;
+    &:not(.disabled):hover { background: var(--fid-blue-deep); color: #fff; }
+  }
+
+  .button.button-metal {
+    border-radius: 7px;
+    box-shadow: none;
+  }
+
+  a:not(.button):focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--fid-teal);
+    outline-offset: 2px;
+  }
+
+  input, select, textarea {
+    border-radius: 6px;
+  }
+
+  .box, .lobby__box {
+    border-radius: var(--fid-radius);
+  }
+
+  @media (max-width: 799px) {
+    #top { padding: 0 .5rem; }
+    .site-title .fid-logo { width: 43px; height: 32px; }
+    .site-title .brand-wordmark small { display: none; }
+  }
+}
+
+/* Preserve readable page backgrounds for users who prefer dark mode. */
+body.lifidama-fid.dark {
+  --fid-canvas: #151f2d;
+  --fid-ink: #e6edf5;
+  --fid-border: #354459;
+  --fid-shadow: 0 5px 22px rgba(0, 0, 0, .28);
+}
