@@ -35,7 +35,7 @@ object home {
   )(implicit ctx: Context) = views.html.base.layout(
     title = "",
     fullTitle = Some {
-      s"lidraughts.${if (isProd && !isStage) "org" else "dev"} • ${trans.freeOnlineDraughts.txt()}"
+      s"LiFiDama • ${trans.freeOnlineDraughts.txt()}"
     },
     moreJs = frag(
       jsAt(s"compiled/lidraughts.lobby${isProd ?? (".min")}.js", defer = true),
@@ -58,7 +58,7 @@ object home {
     draughtsground = false,
     openGraph = lidraughts.app.ui.OpenGraph(
       image = staticUrl("images/lidraughts-tile-wide.png").some,
-      title = "The best free, adless draughts server",
+      title = "LiFiDama - La dama online",
       url = netBaseUrl,
       description = trans.siteDescription.txt()
     ).some,
@@ -122,9 +122,9 @@ object home {
             )
           } getOrElse div(cls := "about-side")(
             ctx.blind option h2("About"),
-            trans.xIsAFreeYLibreOpenSourceDraughtsServer("Lidraughts", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
+            trans.xIsAFreeYLibreOpenSourceDraughtsServer("LiFiDama", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
             " ",
-            a(href := "/about")(trans.aboutX("Lidraughts"), "...")
+            a(href := "/about")(trans.aboutX("LiFiDama", "...")
           )
         ),
         featured map { g =>
