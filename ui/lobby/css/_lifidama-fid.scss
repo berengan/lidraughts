@@ -1,0 +1,47 @@
+/* FID homepage only; imported after existing lobby styles. */
+body.lifidama-fid {
+  .lobby__start {
+    gap: .65rem;
+    .button {
+      border-radius: 9px;
+      font-weight: 700;
+      letter-spacing: .01em;
+      box-shadow: var(--fid-shadow);
+    }
+    .config_hook {
+      background: var(--fid-blue);
+      color: #fff;
+      &:hover { background: var(--fid-blue-deep); color: #fff; }
+    }
+    .config_friend {
+      background: var(--fid-teal);
+      color: #062f36;
+      &:hover { background: var(--fid-teal-hover); color: #fff; }
+    }
+  }
+
+  .lobby__app,
+  .lobby__box,
+  .lobby__spotlights,
+  .lobby__tv {
+    border-radius: var(--fid-radius);
+  }
+
+  .lobby__app-now_playing .lobby__app__content {
+    padding: clamp(.75rem, 2vw, 1.4rem);
+  }
+
+  .lobby__app-now_playing .now-playing {
+    max-width: 480px;
+    gap: 1rem;
+  }
+
+  .lobby__counters {
+    border-radius: 8px;
+  }
+
+  @media (max-width: 799px) {
+    .lobby__start { gap: .4rem; }
+    .lobby__app-now_playing .lobby__app__content { padding: .7rem; }
+  }
+}
