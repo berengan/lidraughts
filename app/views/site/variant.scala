@@ -58,7 +58,8 @@ object variant {
           ),
         lidraughts.rating.PerfType.variantsPlus.filter(pt =>
           pt != lidraughts.rating.PerfType.Italian &&
-            FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))) map { pt =>
+          FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))
+        ) map { pt =>
           val variant = lidraughts.rating.PerfType variantOf pt
           a(cls := "variant text box__pad", href := routes.Page.variant(pt.key), dataIcon := pt.iconChar)(
             span(
@@ -90,7 +91,8 @@ object variant {
           )("Dama Italiana"),
           lidraughts.rating.PerfType.variantsPlus.filter(pt =>
             pt != lidraughts.rating.PerfType.Italian &&
-              FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))) map { pt =>
+            FederationConfig.current.allowsVariant(lidraughts.rating.PerfType.variantOf(pt))
+          ) map { pt =>
             a(
               cls := List("text" -> true, "active" -> active.has(pt)),
               href := routes.Page.variant(pt.key),
