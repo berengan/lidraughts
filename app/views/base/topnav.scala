@@ -8,14 +8,29 @@ import controllers.routes
 
 object topnav {
 
-  // Demo menu switches: disabled features remain available in the codebase.
+  // Optional Play config: lifidama.menu.<key> = true/false.
+  // Missing keys preserve the current menu defaults.
   private object MenuDisplay {
-    val showPuzzleTraining = false
-    val showPractice = false
-    val showCoordinates = false
-    val showStudies = true
-    val showFaq = false
-    val showDonation = false
+    private def enabled(key: String, default: Boolean): Boolean =
+      play.api.Play.current.configuration.getBoolean(s"lifidama.menu.$key").getOrElse(default)
+
+    def showPuzzleTraining = enabled("learn.puzzleTraining", false)
+    def showPractice = enabled("learn.practice", false)
+    def showCoordinates = enabled("learn.coordinates", false)
+    def showStudies = enabled("learn.studies", true)
+
+    def showWatch = enabled("watch.enabled", true)
+    def showTv = enabled("watch.tv", true)
+    def showCurrentGames = enabled("watch.currentGames", true)
+    def showStreamers = enabled("watch.streamers", true)
+    def showBroadcasts = enabled("watch.broadcasts", true)
+
+    def showCommunity = enabled("community.enabled", true)
+    def showPlayers = enabled("community.players", true)
+    def showTeams = enabled("community.teams", true)
+    def showForum = enabled("community.forum", true)
+    def showFaq = enabled("community.faq", false)
+    def showDonation = enabled("community.donation", false)
   }
 
   private def linkTitle(url: String, name: Frag)(implicit ctx: Context) =
@@ -51,22 +66,21 @@ object topnav {
       //a(href := routes.Coach.allDefault(1))(trans.coaches())
       )
     ),
-    st.section(
+    MenuDisplay.showWatch option st.section(
       linkTitle(routes.Tv.index.toString, trans.watch()),
       div(role := "group")(
-        a(href := routes.Tv.index)("LiFiDama TV"),
-        a(href := routes.Tv.games)(trans.currentGames()),
-        a(href := routes.Streamer.index())(trans.streamersMenu()),
-        a(href := routes.Relay.index())(trans.broadcast.broadcasts())
-      //ctx.noBot option a(href := routes.Video.index)(trans.videoLibrary())
+        MenuDisplay.showTv option a(href := routes.Tv.index)("LiFiDama TV"),
+        MenuDisplay.showCurrentGames option a(href := routes.Tv.games)(trans.currentGames()),
+        MenuDisplay.showStreamers option a(href := routes.Streamer.index())(trans.streamersMenu()),
+        MenuDisplay.showBroadcasts option a(href := routes.Relay.index())(trans.broadcast.broadcasts())
       )
     ),
-    st.section(
+    MenuDisplay.showCommunity option st.section(
       linkTitle(routes.User.list.toString, trans.community()),
       div(role := "group")(
-        a(href := routes.User.list)(trans.players()),
-        a(href := routes.Team.home())(trans.team.teams()),
-        NotForKids(a(href := routes.ForumCateg.index)(trans.forum())),
+        MenuDisplay.showPlayers option a(href := routes.User.list)(trans.players()),
+        MenuDisplay.showTeams option a(href := routes.Team.home())(trans.team.teams()),
+        MenuDisplay.showForum option NotForKids(a(href := routes.ForumCateg.index)(trans.forum())),
         MenuDisplay.showFaq option a(href := routes.Main.faq)(trans.faqMenu()),
         (MenuDisplay.showDonation && ctx.me.exists(!_.kid)) option
           a(cls := "community-patron", href := routes.Plan.index)(trans.patron.donate())
