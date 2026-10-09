@@ -516,7 +516,7 @@ object PosItalian extends BoardPos {
 
   private def physicalAt(column: Int, row: Int): Option[PosMotion] =
     if (column < 0 || column >= 8 || row < 0 || row >= 8 ||
-        (column + row) % 2 != 0) None
+      (column + row) % 2 != 0) None
     else posAt((column - row % 2) / 2 + 1, row + 1)
 
   def neighbor(pos: PosItalian, dx: Int, dy: Int): Option[PosMotion] =
