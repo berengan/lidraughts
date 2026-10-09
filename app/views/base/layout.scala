@@ -117,9 +117,9 @@ object layout {
         metaCsp(csp),
         metaThemeColor,
         if (isProd && !isStage) frag(
-          st.headTitle(fullTitle | s"$title • lidraughts.org")
+          st.headTitle(fullTitle | s"$title • LiFiDama")
         )
-        else st.headTitle(s"[dev] ${fullTitle | s"$title • lidraughts.org"}"),
+        else st.headTitle(s"${fullTitle | s"$title • LiFiDama"}"),
         cssTag("site"),
         ctx.pageData.inquiry.isDefined option cssTagNoTheme("mod.inquiry"),
         ctx.userContext.impersonatedBy.isDefined option cssTagNoTheme("mod.impersonate"),
@@ -242,9 +242,16 @@ object layout {
           h1(cls := "site-title")(
             if (ctx.kid) span(title := trans.kidMode.txt(), cls := "kiddo")(":)")
             else ctx.isBot option botImage,
-            a(href := "/")(
-              "lidraughts",
-              span(if (isProd && !isStage) ".org" else ".dev")
+            a(href := "/", title := "LiFiDama - progetto in sviluppo")(
+              img(
+                cls := "fid-logo",
+                src := "https://www.fid.it/immagini/logo.jpg",
+                alt := "Logo Federazione Italiana Dama"
+              ),
+              span(cls := "brand-wordmark")(
+                strong("LiFiDama"),
+                small("Progetto in sviluppo")
+              )
             )
           ),
           ctx.blind option h2("Navigation"),
