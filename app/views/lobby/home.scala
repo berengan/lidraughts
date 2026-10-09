@@ -99,8 +99,8 @@ object home {
           },
         div(cls := "lobby__side")(
           ctx.blind option h2("Highlights"),
-          ctx.noKid option st.section(cls := "lobby__streams")(views.html.streamer.bits liveStreams streams),
-          div(cls := "lobby__spotlights")(
+          (ctx.noKid && HomeDisplay.showStreams) option st.section(cls := "lobby__streams")(views.html.streamer.bits liveStreams streams),
+          HomeDisplay.showSpotlights option div(cls := "lobby__spotlights")(
             events.map(bits.spotlight),
             relays.map(bits.spotlight),
             !ctx.isBot option frag(
@@ -120,12 +120,12 @@ object home {
               // userTimeline.size >= 8 option
               userTimeline.nonEmpty option a(cls := "more", href := routes.Timeline.home)(trans.more(), " »")
             )
-          } getOrElse div(cls := "about-side")(
+          } getOrElse (HomeDisplay.showSideAbout option div(cls := "about-side")(
             ctx.blind option h2("About"),
             trans.xIsAFreeYLibreOpenSourceDraughtsServer("LiFiDama", a(cls := "blue", href := routes.Plan.features)(trans.really.txt())),
             " ",
             a(href := "/about")(trans.aboutX("LiFiDama"), "...")
-          )
+          ))
         ),
         featured map { g =>
           div(cls := "lobby__tv")(
@@ -139,8 +139,8 @@ object home {
             span(cls := "text")(p.color.fold(trans.whitePlays, trans.blackPlays)())
           )
         },
-        ctx.noBot option bits.underboards(tours, simuls, leaderboard, tournamentWinners),
-        ctx.noKid option div(cls := "lobby__forum lobby__box", dataUrl := routes.ForumPost.recent)(
+        (ctx.noBot && HomeDisplay.showUnderboards) option bits.underboards(tours, simuls, leaderboard, tournamentWinners),
+        (ctx.noKid && HomeDisplay.showForum) option div(cls := "lobby__forum lobby__box", dataUrl := routes.ForumPost.recent)(
           div(cls := "lobby__box__top")(
             h2(cls := "title text", dataIcon := "d")(trans.latestForumPosts()),
             a(cls := "more", href := routes.ForumCateg.index)(trans.more(), " »")
@@ -149,8 +149,8 @@ object home {
             views.html.forum.post recent forumRecent
           )
         ),
-        bits.lastPosts(lastPost),
-        div(cls := "lobby__support")(
+        HomeDisplay.showBlog option bits.lastPosts(lastPost),
+        HomeDisplay.showDonation option div(cls := "lobby__support")(
           a(href := routes.Plan.index)(
             iconTag(patronIconChar),
             span(cls := "lobby__support__text")(
@@ -166,15 +166,15 @@ object home {
             )
           )*/
         ),
-        div(cls := "lobby__about")(
+        HomeDisplay.showFooterLinks option div(cls := "lobby__about lifidama-footer")(
           ctx.blind option h2("About"),
           a(href := "/about")(trans.aboutX("LiFiDama")),
-          a(href := "/faq")(trans.faqMenu()),
-          a(href := "/contact")(trans.contact()),
-          a(href := "/mobile")(trans.mobileApp()),
-          a(href := routes.Page.tos)(trans.termsOfService()),
-          a(href := routes.Page.privacy)(trans.privacy()),
-          a(href := "https://github.com/roepstoep/lidraughts")(trans.sourceCode())
+          HomeDisplay.showFaq option a(href := "/faq")(trans.faqMenu()),
+          HomeDisplay.showContact option a(href := "/contact")(trans.contact()),
+          HomeDisplay.showMobileApp option a(href := "/mobile")(trans.mobileApp()),
+          HomeDisplay.showLegalLinks option a(href := routes.Page.tos)(trans.termsOfService()),
+          HomeDisplay.showLegalLinks option a(href := routes.Page.privacy)(trans.privacy()),
+          HomeDisplay.showSourceCode option a(href := "https://github.com/berengan/lidraughts")(trans.sourceCode())
         )
       )
     }
