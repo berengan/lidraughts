@@ -39,11 +39,11 @@ def normalize_fen(fen):
     if (halfmove is not None and
             (int(halfmove) < 0 or int(fullmove) < 1)):
         raise ValueError("invalid currentFen counters")
-    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\\-]*:)?[BW][K0-9,\\-]*", board):
+    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\-]*:)?[BW][K0-9,\-]*", board):
         raise ValueError("unsupported currentFen format")
     if board.count(":W") != 1 or board.count(":B") != 1:
         raise ValueError("expected one section per color")
-    for n in re.findall(r"\\d+", board):
+    for n in re.findall(r"\d+", board):
         if int(n) < 1 or int(n) > 32:
             raise ValueError("square outside 32-square Italian board")
     return board
