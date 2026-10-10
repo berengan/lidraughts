@@ -92,6 +92,22 @@ class ItalianTest extends Specification {
       playable.exists(m => m.dest == intermediate && m.captures) must beFalse
     }
 
+    "allow a white king on 6 to move in all four directions including the back rank" in {
+      val sit = fidSituation(White, 6 -> (White - King), 32 -> (Black - Man))
+      val dests = sit.validMoves.getOrElse(PosItalian.posAt(6).get, Nil)
+        .map(_.dest.fieldNumber).sorted
+
+      dests must_== List(2, 3, 10, 11)
+    }
+
+    "allow a black king to move onto the opposite back rank" in {
+      val sit = fidSituation(Black, 27 -> (Black - King), 1 -> (White - Man))
+      val dests = sit.validMoves.getOrElse(PosItalian.posAt(27).get, Nil)
+        .map(_.dest.fieldNumber).sorted
+
+      dests must_== List(22, 23, 30, 31)
+    }
+
     "use short-range kings" in {
       val sit = situation(
         White,
