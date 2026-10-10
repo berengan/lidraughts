@@ -73,8 +73,10 @@ private final class MoveDB(
         coll += (move.id -> move)
 
       case Acquire(client, engineName) => sender ! coll.values.foldLeft(none[Move]) {
-        case (found, m) if m.nonAcquired && m.canAcquire(client) &&
-            ((m.game.variant == draughts.variant.Italian) == (engineName == "LiFiDama-Italian")) => Some {
+        // Offline workers share one synthetic client key; after a timeout they
+        // must be allowed to reacquire their own unfinished move.
+        case (found, m) if m.nonAcquired && (m.canAcquire(client) || client.offline) &&
+          ((m.game.variant == draughts.variant.Italian) == (engineName == "LiFiDama-Italian")) => Some {
           found.fold(m) { a =>
             if (m.createdAt.isBefore(a.createdAt)) m else a
           }

@@ -78,9 +78,9 @@ object AiConfig extends BaseConfig {
   // The Draughtsnet worker maps these legacy numeric levels to INI sections.
   val levelChoices =
     if (lidraughts.common.FederationConfig.current.enabled &&
-        lidraughts.common.FederationConfig.current.defaultVariant == draughts.variant.Italian)
+      lidraughts.common.FederationConfig.current.defaultVariant == draughts.variant.Italian)
       List(("1", "Beginner", none), ("3", "Intermediate", none),
-           ("6", "Professional", none), ("8", "Ultra", none))
+        ("6", "Professional", none), ("8", "Ultra", none))
     else levels map { l => (l.toString, l.toString, none) }
 
   import lidraughts.db.BSON
