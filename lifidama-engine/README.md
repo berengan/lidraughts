@@ -65,8 +65,10 @@ LIFIDAMA_ENGINE=/usr/src/lifidama-engine/dama-linux \\
 ```
 
 I test nativi sono opt-in: senza `LIFIDAMA_ENGINE` vengono saltati.
-Non inviano mosse al sito. Verificano esplicitamente che il worker
-**rifiuti ancora le catture** finché il campo `taken` non è validato.
+Non inviano mosse al sito. Il worker invia solo gli estremi della mossa:
+il nuovo codice Scala risolve le catture multiple tramite le mosse legali
+del server e rifiuta i percorsi ambigui. **Questo flusso non è ancora
+stato compilato o provato end-to-end: NON usare `--post`.**
 
 ## Draughtsnet: solo dopo la verifica della CLI
 
@@ -91,8 +93,9 @@ nella coda del server, che verrà riproposto alla scadenza del lease.
 1. Verificare la compilazione Scala della branch.
 2. Confrontare FEN e numerazione caselle con la libreria del sito, oltre
    ai test locali già superati.
-3. Verificare UCI, multi-catture e il campo `taken`: al momento il worker
-   **rifiuta esplicitamente tutte le catture**.
+3. Compilare e testare il nuovo ramo Scala che ricostruisce sul server
+   le multi-catture italiane da origine/destinazione; verificare anche
+   catture ambigue e parità delle numerazioni delle caselle.
 4. Testare una partita completa su istanza di prova, incluso il tempo limite.
 5. Chiarire i termini di ridistribuzione del motore originale.
 
