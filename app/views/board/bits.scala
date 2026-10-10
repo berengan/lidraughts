@@ -48,7 +48,7 @@ object bits {
 
   def variantJson(v: draughts.variant.Variant)(implicit ctx: Context) = Json.obj(
     "key" -> v.key,
-    "name" -> v.name,
+    "name" -> (if (v.italian) "Dama italiana" else v.name),
     "board" -> v.boardSize,
     "initialFen" -> v.initialFen
   ).add("puzzle" -> lidraughts.pref.Pref.puzzleVariants.contains(v).option(true))
