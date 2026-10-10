@@ -60,12 +60,14 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs["timeout"], 8)
 
     @patch("worker.subprocess.run")
-    def test_capture_not_posted_without_taken_protocol(self, run):
+    def test_capture_uses_server_side_path_resolution(self, run):
         run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="bestmove=16x23\n", stderr="")
-        with self.assertRaisesRegex(ValueError, "capture"):
+        self.assertEqual(
             compute(Path("/tmp/dama-linux"), Path("/tmp/engine-levels.ini"),
-                    "W:B1-12:W21-32", 3)
+                    "W:W22:B18,10", 3),
+            {"bestmove": "1623", "taken": ""}
+        )
 
 
 if __name__ == "__main__":
