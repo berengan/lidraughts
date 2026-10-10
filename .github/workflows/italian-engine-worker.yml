@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - 'lifidama-engine/**'
+      - 'modules/draughtsnet/src/main/MoveDB.scala'
       - '.github/workflows/italian-engine-worker.yml'
 
 jobs:
