@@ -24,6 +24,37 @@ class ProtocolTests(unittest.TestCase):
             with self.subTest(fen=bad), self.assertRaises(ValueError):
                 normalize_fen(bad)
 
+    def test_server_currentfen_with_counters(self):
+        # Exact initial-position FEN observed from the devel server.
+        server_fen = (
+            "W:W21,22,23,24,25,26,27,28,29,30,31,32:"
+            "B1,2,3,4,5,6,7,8,9,10,11,12:H0:F1"
+        )
+        board_fen = server_fen.removesuffix(":H0:F1")
+        self.assertEqual(normalize_fen(server_fen), board_fen)
+        job = {"work": {"type": "move", "id": "abcdefgh", "level": 1},
+               "variant": "italian", "currentFen": server_fen}
+        self.assertEqual(validate_work(job), (board_fen, "beginner"))
+
+        for bad in (server_fen + ":EXTRA",
+                    board_fen + ":H0:F0",
+                    board_fen + ":H-1:F1",
+                    board_fen + ":H0:F1:EXTRA",
+                    board_fen + ":H0",
+                    board_fen + ":H0:F1:W1"):
+            with self.subTest(fen=bad), self.assertRaises(ValueError):
+                normalize_fen(bad)
+
+    @patch("worker.subprocess.run")
+    def test_compute_passes_board_only_fen_to_native_engine(self, run):
+        run.return_value = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="bestmove=21-18\n", stderr="")
+        fen = ("W:W21,22,23,24,25,26,27,28,29,30,31,32:"
+               "B1,2,3,4,5,6,7,8,9,10,11,12:H0:F1")
+        compute(Path("/tmp/dama-linux"), Path("/tmp/engine-levels.ini"), fen, 1)
+        argv = run.call_args.args[0]
+        self.assertEqual(argv[argv.index("--fen") + 1], fen.removesuffix(":H0:F1"))
+
     def test_move_notation(self):
         self.assertEqual(parse_bestmove("bestmove=23-19"), ("2319", "-"))
         self.assertEqual(parse_bestmove("bestmove=16x23"), ("1623", "x"))
