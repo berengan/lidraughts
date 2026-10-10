@@ -344,15 +344,17 @@ export default class RoundController {
         role: o.role,
         color: playedColor
       }, o.uci.substr(o.uci.length - 2, 2) as cg.Key);
+      else if (d.game.variant.key === 'italian' && ghosts === 0) {
+        // Italian captures can arrive as endpoint-only UCI (e.g. 18x2).
+        // A local move cannot infer all captured squares. Apply the server's
+        // complete position without animation, so no stale pieces survive.
+        this.draughtsground.set({ animation: { enabled: false }, fen: o.fen });
+        this.draughtsground.set({ animation: { enabled: true } });
+      }
       else {
         const keys = util.uci2move(o.uci);
         this.draughtsground.move(keys![0], keys![1], ghosts === 0);
       }
-      // A complete Italian multi-capture arrives as one endpoint-only UCI.
-      // Reconcile with the authoritative board FEN to remove every captured
-      // piece immediately, rather than waiting for a page reload.
-      if (d.game.variant.key === 'italian' && o.san && o.san.includes('x'))
-        this.draughtsground.set({ fen: o.fen });
       this.draughtsground.set({
         turnColor: d.game.player,
         movable: {
