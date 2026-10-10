@@ -267,9 +267,9 @@ object JsonApi {
             "type" -> "move",
             "id" -> m.id,
             "level" -> m.level,
-            "clock" -> m.clock,
-            "currentFen" -> m.currentFen
-          )
+            "clock" -> m.clock
+          ),
+          "currentFen" -> m.currentFen
         )
       }) ++ Json.toJson(work.game).as[JsObject]
     }
