@@ -20,9 +20,9 @@ contro il computer rimane disabilitato fino alla verifica end-to-end.
 
 ```bash
 cd /opt/lidraughts
-git fetch origin
-git switch feature/lifidama-italian-engine
-cd lifidama-engine
+git fetch origin feature/lifidama-italian-engine
+git worktree add --detach /tmp/lifidama-engine-test FETCH_HEAD
+cd /tmp/lifidama-engine-test/lifidama-engine
 python3 -m unittest -v test_worker.py
 ```
 
@@ -33,15 +33,40 @@ Il worker presume che il binario accetti:
 dama-linux --move --fen 'W:B1-12:W21-32' --level beginner --config engine-levels.ini
 ```
 
-**Questa interfaccia CLI non è ancora stata verificata sulla VM.**
+**Questa interfaccia CLI è stata verificata sulla VM il 10 ottobre 2026.**
+Il binario compilato è `/usr/src/lifidama-engine/dama-linux`.
 Controllarla con `--probe`, specificando il percorso reale del binario:
 
 ```bash
-python3 worker.py --probe --engine /PERCORSO/DEL/BINARIO \
+python3 worker.py --probe --engine /usr/src/lifidama-engine/dama-linux \
   --config ./engine-levels.ini
 ```
 
 `--probe` non richiede chiavi, non interroga il server e non invia mosse.
+
+## Regressione completa del motore nativo (solo locale)
+
+La VM ha già prodotto i seguenti riferimenti: 7 mosse iniziali,
+`perft(1..5) = 7, 49, 302, 1469, 7361`; cattura singola
+`W:W22:B18 -> 22x13`; cattura multipla
+`W:W22:B18,10 -> 22x6`; cattura di dama
+`W:WK22:B18,10 -> 22x6`.
+
+Dopo aver aggiornato il worktree di prova al ramo corrente, eseguire:
+
+```bash
+cd /opt/lidraughts
+git fetch origin feature/lifidama-italian-engine
+git -C /tmp/lifidama-engine-test fetch origin feature/lifidama-italian-engine
+git -C /tmp/lifidama-engine-test switch --detach FETCH_HEAD
+cd /tmp/lifidama-engine-test/lifidama-engine
+LIFIDAMA_ENGINE=/usr/src/lifidama-engine/dama-linux \\
+  python3 -m unittest -v test_worker.py test_engine_integration.py
+```
+
+I test nativi sono opt-in: senza `LIFIDAMA_ENGINE` vengono saltati.
+Non inviano mosse al sito. Verificano esplicitamente che il worker
+**rifiuti ancora le catture** finché il campo `taken` non è validato.
 
 ## Draughtsnet: solo dopo la verifica della CLI
 
@@ -64,7 +89,8 @@ nella coda del server, che verrà riproposto alla scadenza del lease.
 ## Blocchi ancora aperti
 
 1. Verificare la compilazione Scala della branch.
-2. Confermare i parametri della CLI del motore e la sintassi FEN reale.
+2. Confrontare FEN e numerazione caselle con la libreria del sito, oltre
+   ai test locali già superati.
 3. Verificare UCI, multi-catture e il campo `taken`: al momento il worker
    **rifiuta esplicitamente tutte le catture**.
 4. Testare una partita completa su istanza di prova, incluso il tempo limite.
