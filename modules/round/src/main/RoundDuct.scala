@@ -54,7 +54,7 @@ private[round] final class RoundDuct(
       if (game.variant == draughts.variant.Italian && taken.isEmpty) {
         val matchingCaptures = game.variant
           .validMovesFrom(game.situation, uci.origDest._1, finalSquare = true)
-          .filter(move => move.dest == uci.origDest._2 && move.captures)
+          .filter(move => move.dest == uci.origDest._2 && move.captures).toList
         matchingCaptures match {
           case List(fullCapture) if fullCapture.capture.exists(_.size > 1) =>
             val captures = fullCapture.capture.get
