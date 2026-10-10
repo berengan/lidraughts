@@ -21,17 +21,32 @@ MOVE = re.compile(r"^bestmove=(\d{1,2})([-x])(\d{1,2})$", re.M)
 LOG = logging.getLogger("lifidama-worker")
 
 def normalize_fen(fen):
+    """Convert the server's full FEN into the native engine's board-only FEN.
+
+    Scala sends e.g. W:W21,...,32:B1,...,12:H0:F1. The native CLI
+    accepts the side-to-move and piece lists, without H/F counters.
+    """
     if not isinstance(fen, str):
         raise ValueError("missing currentFen")
     fen = fen.strip()
-    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\-]*:)?[BW][K0-9,\-]*", fen):
+    # H (half-move clock) and F (full-move number) are metadata, not
+    # board squares. Validate them before stripping; do not accept other
+    # unknown FEN extensions.
+    match = re.fullmatch(r"(.+?)(?::H([0-9]+):F([0-9]+))?", fen)
+    if not match:
         raise ValueError("unsupported currentFen format")
-    if fen.count(":W") != 1 or fen.count(":B") != 1:
+    board, halfmove, fullmove = match.groups()
+    if (halfmove is not None and
+            (int(halfmove) < 0 or int(fullmove) < 1)):
+        raise ValueError("invalid currentFen counters")
+    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\\-]*:)?[BW][K0-9,\\-]*", board):
+        raise ValueError("unsupported currentFen format")
+    if board.count(":W") != 1 or board.count(":B") != 1:
         raise ValueError("expected one section per color")
-    for n in re.findall(r"\d+", fen):
+    for n in re.findall(r"\\d+", board):
         if int(n) < 1 or int(n) > 32:
             raise ValueError("square outside 32-square Italian board")
-    return fen
+    return board
 
 def level_for(value):
     if type(value) is not int or value not in LEVELS:
