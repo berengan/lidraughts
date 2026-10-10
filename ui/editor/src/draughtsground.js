@@ -138,6 +138,7 @@ function makeConfig(ctrl) {
   return {
     fen: ctrl.cfg.fen,
     boardSize: ctrl.data.variant.board.size,
+    flipFiles: ctrl.data.variant.key === 'italian',
     orientation: ctrl.options.orientation || 'white',
     coordinates: ctrl.embed ? 0 : ctrl.cfg.coords,
     coordSystem: ctrl.coordSystem(),
