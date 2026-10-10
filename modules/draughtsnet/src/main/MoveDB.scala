@@ -73,7 +73,10 @@ private final class MoveDB(
         coll += (move.id -> move)
 
       case Acquire(client, engineName) => sender ! coll.values.foldLeft(none[Move]) {
-        case (found, m) if m.nonAcquired && m.canAcquire(client) &&
+        // In offline mode all worker instances share the same synthetic key.
+        // Refusing the last key would strand a timed-out move forever.
+        // Keep the normal per-client alternation for authenticated workers.
+        case (found, m) if m.nonAcquired && (m.canAcquire(client) || client.offline) &&
             ((m.game.variant == draughts.variant.Italian) == (engineName == "LiFiDama-Italian")) => Some {
           found.fold(m) { a =>
             if (m.createdAt.isBefore(a.createdAt)) m else a
