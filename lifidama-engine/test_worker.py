@@ -48,7 +48,7 @@ class ProtocolTests(unittest.TestCase):
     @patch("worker.subprocess.run")
     def test_compute_passes_board_only_fen_to_native_engine(self, run):
         run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="bestmove=21-18\\n", stderr="")
+            args=[], returncode=0, stdout="bestmove=21-18\n", stderr="")
         fen = ("W:W21,22,23,24,25,26,27,28,29,30,31,32:"
                "B1,2,3,4,5,6,7,8,9,10,11,12:H0:F1")
         compute(Path("/tmp/dama-linux"), Path("/tmp/engine-levels.ini"), fen, 1)
