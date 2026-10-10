@@ -69,6 +69,28 @@ class ItalianTest extends Specification {
       matches.head.situationAfter.board(endpoint).map(_.color) must beSome(White)
     }
 
+    "resolve the real 18x2 forced capture and its first playable segment" in {
+      // FID position after Black 11x20: White must capture 18x11x2.
+      val blackFields = List(1, 14, 16, 20) ++ (3 to 10)
+      val whiteFields = List(18, 21) ++ (23 to 32)
+      val pieces = blackFields.map(_ -> (Black - Man)) ++
+        whiteFields.map(_ -> (White - Man))
+      val sit = fidSituation(White, pieces: _*)
+      val origin = PosItalian.posAt(18).get
+      val intermediate = PosItalian.posAt(11).get
+      val endpoint = PosItalian.posAt(2).get
+
+      val complete = Italian.validMovesFrom(sit, origin, finalSquare = true)
+        .filter(m => m.dest == endpoint && m.captures)
+      complete must haveSize(1)
+      complete.head.capture.exists(_.size == 2) must beTrue
+
+      // RoundDuct feeds the first landing square to Player.draughtsnet,
+      // which calls game.draughts with finalSquare = false.
+      val playable = Italian.validMovesFrom(sit, origin, finalSquare = false)
+      playable.exists(m => m.dest == intermediate && m.captures) must beTrue
+    }
+
     "use short-range kings" in {
       val sit = situation(
         White,
