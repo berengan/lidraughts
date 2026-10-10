@@ -88,15 +88,26 @@ def main():
     p.add_argument("--config",type=Path,default=Path("./engine-levels.ini"))
     p.add_argument("--poll",type=float,default=2.0)
     p.add_argument("--once",action="store_true")
+    p.add_argument("--probe",action="store_true",
+                   help="Test the engine locally without contacting Draughtsnet")
     p.add_argument("--post",action="store_true")
     args=p.parse_args()
     logging.basicConfig(level=logging.INFO)
-    if not args.key: p.error("missing --key or LIFIDAMA_DRAUGHTSNET_KEY")
+    if not args.key and not args.probe:
+        p.error("missing --key or LIFIDAMA_DRAUGHTSNET_KEY")
     if args.poll<1: p.error("--poll must be >= 1")
     if args.post and args.once:
         p.error("--once and --post cannot be combined: --once is a diagnostic")
     if not args.engine.is_file() or not args.config.is_file():
         p.error("missing engine/config file")
+    if args.probe:
+        try:
+            result = compute(args.engine, args.config, "W:B1-12:W21-32", 1)
+            print(json.dumps({"ok": True, "move": result}, sort_keys=True))
+            return
+        except (ValueError, subprocess.CalledProcessError,
+                subprocess.TimeoutExpired, OSError) as exc:
+            p.error("local engine probe failed: " + str(exc))
     meta={"draughtsnet":{"version":"1.0.0","apikey":args.key},
           "scan":{"name":ENGINE}}
     pending = None
@@ -113,7 +124,7 @@ def main():
                                       {**meta,"move":result})
             elif args.once: LOG.info("no work available")
         except (ValueError,RuntimeError,subprocess.CalledProcessError,
-                subprocess.TimeoutExpired,urllib.error.URLError) as e:
+                subprocess.TimeoutExpired,urllib.error.URLError,OSError) as e:
             LOG.error("%s",e)
         if args.once: break
         time.sleep(args.poll)
