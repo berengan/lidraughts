@@ -73,10 +73,10 @@ private final class MoveDB(
         coll += (move.id -> move)
 
       case Acquire(client, engineName) => sender ! coll.values.foldLeft(none[Move]) {
-        case (found, m) if m.nonAcquired &&
+        case (found, m) if m.nonAcquired && m.canAcquire(client) &&
             ((m.game.variant == draughts.variant.Italian) == (engineName == "LiFiDama-Italian")) => Some {
           found.fold(m) { a =>
-            if (m.canAcquire(client) && m.createdAt.isBefore(a.createdAt)) m else a
+            if (m.createdAt.isBefore(a.createdAt)) m else a
           }
         }
         case (found, _) => found
