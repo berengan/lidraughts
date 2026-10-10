@@ -56,6 +56,13 @@ private[round] final class RoundDuct(
           .validMovesFrom(game.situation, uci.origDest._1, finalSquare = true)
           .filter(move => move.dest == uci.origDest._2 && move.captures).toList
         matchingCaptures match {
+          case List(fullCapture) if fullCapture.capture.exists(_.size > 1) &&
+              game.variant.validMovesFrom(game.situation, uci.origDest._1, finalSquare = false)
+                .exists(move => move.dest == uci.origDest._2 && move.captures) =>
+            // Some Italian captures (notably those ending on promotion) are
+            // already represented as one complete move with finalSquare=false.
+            // Splitting them into intermediate hops produces an illegal move.
+            player.draughtsnet(game, uci, currentFen, this)
           case List(fullCapture) if fullCapture.capture.exists(_.size > 1) =>
             val captures = fullCapture.capture.get
             Uci(captures.last.key + captures.head.key) match {
