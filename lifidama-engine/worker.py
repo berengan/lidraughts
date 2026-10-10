@@ -17,18 +17,18 @@ from pathlib import Path
 ENGINE = "LiFiDama-Italian"
 LEVELS = {1:"beginner",2:"beginner",3:"intermediate",4:"intermediate",
           5:"professional",6:"professional",7:"ultra",8:"ultra"}
-MOVE = re.compile(r"^bestmove=(\\d{1,2})([-x])(\\d{1,2})$", re.M)
+MOVE = re.compile(r"^bestmove=(\d{1,2})([-x])(\d{1,2})$", re.M)
 LOG = logging.getLogger("lifidama-worker")
 
 def normalize_fen(fen):
     if not isinstance(fen, str):
         raise ValueError("missing currentFen")
     fen = fen.strip()
-    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\\-]*:)?[BW][K0-9,\\-]*", fen):
+    if not re.fullmatch(r"[WB]:(?:[BW][K0-9,\-]*:)?[BW][K0-9,\-]*", fen):
         raise ValueError("unsupported currentFen format")
     if fen.count(":W") != 1 or fen.count(":B") != 1:
         raise ValueError("expected one section per color")
-    for n in re.findall(r"(?<![A-Za-z])\\d+", fen):
+    for n in re.findall(r"(?<![A-Za-z])\d+", fen):
         if int(n) < 1 or int(n) > 32:
             raise ValueError("square outside 32-square Italian board")
     return fen
