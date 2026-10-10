@@ -28,7 +28,7 @@ def normalize_fen(fen):
         raise ValueError("unsupported currentFen format")
     if fen.count(":W") != 1 or fen.count(":B") != 1:
         raise ValueError("expected one section per color")
-    for n in re.findall(r"(?<![A-Za-z])\d+", fen):
+    for n in re.findall(r"\d+", fen):
         if int(n) < 1 or int(n) > 32:
             raise ValueError("square outside 32-square Italian board")
     return fen
@@ -99,16 +99,18 @@ def main():
         p.error("missing engine/config file")
     meta={"draughtsnet":{"version":"1.0.0","apikey":args.key},
           "scan":{"name":ENGINE}}
+    pending = None
     while True:
         try:
-            job=request(args.url,"/draughtsnet/acquire",meta)
+            job = pending if pending is not None else request(args.url,"/draughtsnet/acquire",meta)
+            pending = None
             if job:
                 fen,level=validate_work(job)
                 result=compute(args.engine,args.config,fen,job["work"]["level"])
                 LOG.info("job=%s level=%s move=%s",job["work"]["id"],level,result)
                 if args.post:
-                    request(args.url,"/draughtsnet/move/"+job["work"]["id"],
-                            {**meta,"move":result})
+                    pending = request(args.url,"/draughtsnet/move/"+job["work"]["id"],
+                                      {**meta,"move":result})
             elif args.once: LOG.info("no work available")
         except (ValueError,RuntimeError,subprocess.CalledProcessError,
                 subprocess.TimeoutExpired,urllib.error.URLError) as e:
