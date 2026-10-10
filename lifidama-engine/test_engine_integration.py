@@ -52,10 +52,10 @@ class NativeEngineTests(unittest.TestCase):
         output = self.invoke("--list", "--fen", "W:W22:B18,10")
         self.assertIn("legal_moves=1", output)
         self.assertRegex(output, r"(?m)^22x6$")
-        # The native engine only emits endpoints, not the captured squares.
-        # Never submit this move to Draughtsnet until 'taken' is verified.
-        with self.assertRaisesRegex(ValueError, "capture"):
-            compute(ENGINE, CONFIG, "W:W22:B18,10", 1)
+        # The server (not the worker) must reconstruct the legal capture path.
+        # This local test does not validate the Scala server integration.
+        self.assertEqual(compute(ENGINE, CONFIG, "W:W22:B18,10", 1),
+                         {"bestmove": "2206", "taken": ""})
 
     def test_king_capture(self):
         output = self.invoke("--list", "--fen", "W:WK22:B18,10")
