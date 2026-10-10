@@ -92,7 +92,7 @@ object topnav {
         a(href := routes.UserAnalysis.index)(trans.analysis()),
         isGranted(_.CreatePuzzles) option a(href := routes.UserAnalysis.puzzleEditor)("Puzzle editor"),
         //a(href := s"${routes.UserAnalysis.index}#explorer")(trans.openingExplorer()),
-        a(href := routes.Editor.index)(trans.boardEditor()),
+        a(href := routes.Editor.parse("italian"))("Editor damiera"),
         a(href := routes.Importer.importGame)(trans.importGame()),
         a(href := routes.Search.index())(trans.search.advancedSearch())
       )
