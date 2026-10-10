@@ -18,6 +18,6 @@ jobs:
           python-version: '3.11'
       - name: Python syntax
         run: python3 -m compileall -q lifidama-engine
-      - name: Draughtsnet worker protocol unit tests
+      - name: Draughtsnet worker protocol and HTTP contract tests
         working-directory: lifidama-engine
-        run: python3 -m unittest -v test_worker.py
+        run: python3 -m unittest -v test_worker.py test_protocol_contract.py
