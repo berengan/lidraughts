@@ -48,7 +48,35 @@ private[round] final class RoundDuct(
       }
 
     case DraughtsnetPlay(uci, taken, currentFen) => handle { game =>
-      if (taken.length > 2) {
+      // The native Italian engine currently reports only the capture endpoints.
+      // Resolve multi-capture paths using the authoritative server-side rules,
+      // but never guess when multiple legal paths share those endpoints.
+      if (game.variant == draughts.variant.Italian && taken.isEmpty) {
+        val matchingCaptures = game.variant
+          .validMovesFrom(game.situation, uci.origDest._1, finalSquare = true)
+          .filter(move => move.dest == uci.origDest._2 && move.captures)
+        matchingCaptures match {
+          case List(fullCapture) if fullCapture.capture.exists(_.size > 1) =>
+            val captures = fullCapture.capture.get
+            Uci(captures.last.key + captures.head.key) match {
+              case Some(nextUci) =>
+                val remainingTaken = fullCapture.taken.get.toSet - fullCapture.taken.get.last
+                player.draughtsnet(
+                  game,
+                  Uci.Move(fullCapture.orig, captures.last),
+                  currentFen,
+                  this,
+                  (nextUci, remainingTaken.mkString).some
+                )
+              case _ => fufail(DraughtsnetError(s"Received invalid Italian capture $uci"))
+            }
+          case List(_) => player.draughtsnet(game, uci, currentFen, this)
+          case Nil =>
+            // Ordinary moves still go through the existing legal-move check.
+            player.draughtsnet(game, uci, currentFen, this)
+          case _ => fufail(DraughtsnetError(s"Ambiguous Italian capture $uci"))
+        }
+      } else if (taken.length > 2) {
         val boardPos = game.variant.boardSize.pos
         val takenList: List[Pos] = (for { c <- 0 until taken.length by 2 } yield boardPos.posAt(taken.slice(c, c + 2))).flatten.toList
         val takenSet = takenList.toSet
