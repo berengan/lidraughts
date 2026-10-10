@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Experimental LiFiDama Italian-draughts Draughtsnet worker.
 
-Dry-run by default. Never posts capture moves until the 'taken' protocol is verified.
+Dry-run by default. Italian captures are resolved from legal moves by the patched server.
 """
 import argparse
 import json
@@ -53,8 +53,9 @@ def compute(engine, config, fen, level):
     result = subprocess.run(cmd, capture_output=True, text=True,
                             timeout=8, check=True)
     uci, sep = parse_bestmove(result.stdout)
-    if sep == "x":
-        raise ValueError("capture 'taken' encoding unverified; refusing to post")
+    # For Italian draughts the patched RoundDuct resolves endpoint-only
+    # captures against its legal moves, rejecting ambiguous capture paths.
+    # NEVER enable --post against an unpatched or untested server.
     return {"bestmove":uci, "taken":""}
 
 def request(base, path, body):
