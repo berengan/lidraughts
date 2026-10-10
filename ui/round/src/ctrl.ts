@@ -348,6 +348,11 @@ export default class RoundController {
         const keys = util.uci2move(o.uci);
         this.draughtsground.move(keys![0], keys![1], ghosts === 0);
       }
+      // A complete Italian multi-capture arrives as one endpoint-only UCI.
+      // Reconcile with the authoritative board FEN to remove every captured
+      // piece immediately, rather than waiting for a page reload.
+      if (d.game.variant.key === 'italian' && o.san && o.san.includes('x'))
+        this.draughtsground.set({ fen: o.fen });
       this.draughtsground.set({
         turnColor: d.game.player,
         movable: {
