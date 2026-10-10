@@ -16,8 +16,8 @@ private final class MoveDB(
 
   def add(move: Move) = actor ! Add(move)
 
-  def acquire(client: Client): Fu[Option[Move]] =
-    actor ? Acquire(client) mapTo manifest[Option[Move]]
+  def acquire(client: Client, engineName: String): Fu[Option[Move]] =
+    actor ? Acquire(client, engineName) mapTo manifest[Option[Move]]
 
   def postResult(
     moveId: Work.Id,
@@ -34,7 +34,7 @@ private final class MoveDB(
   private object Mon
   private object Clean
   private case class Add(move: Move)
-  private case class Acquire(client: Client)
+  private case class Acquire(client: Client, engineName: String)
   private case class PostResult(
       moveId: Work.Id,
       client: Client,
@@ -69,8 +69,9 @@ private final class MoveDB(
         clearIfFull
         coll += (move.id -> move)
 
-      case Acquire(client) => sender ! coll.values.foldLeft(none[Move]) {
-        case (found, m) if m.nonAcquired => Some {
+      case Acquire(client, engineName) => sender ! coll.values.foldLeft(none[Move]) {
+        case (found, m) if m.nonAcquired &&
+            ((m.game.variant == draughts.variant.Italian) == (engineName == "LiFiDama-Italian")) => Some {
           found.fold(m) { a =>
             if (m.canAcquire(client) && m.createdAt.isBefore(a.createdAt)) m else a
           }
