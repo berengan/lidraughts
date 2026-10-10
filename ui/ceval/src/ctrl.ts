@@ -95,6 +95,10 @@ export default function(opts: CevalOpts): CevalCtrl {
     };
   })();
 
+  // Native 32-square Italian engine: do not load the 50-square Scan worker.
+  const italian = opts.variant.key === 'italian';
+  let italianRequest: XMLHttpRequest | null = null;
+  let italianBusy = false;
   let lastEmitFen: string | null = null;
 
   const onEmit = throttle(200, (ev: Tree.ClientEval, work: Work) => {
@@ -157,7 +161,41 @@ export default function(opts: CevalOpts): CevalCtrl {
     }
 
     curEval = undefined
-    pool.start(work);
+    if (italian) {
+      if (italianRequest) italianRequest.abort();
+      const xhr = new XMLHttpRequest();
+      italianRequest = xhr;
+      italianBusy = true;
+      const depth = Math.min(20, Math.max(4, maxDepth));
+      xhr.open('GET', '/api/italian-analysis?fen=' + encodeURIComponent(work.currentFen) + '&depth=' + depth, true);
+      xhr.onload = () => {
+        if (italianRequest !== xhr) return;
+        italianRequest = null;
+        italianBusy = false;
+        if (xhr.status !== 200) { opts.onCrash(new Error('Italian analysis HTTP ' + xhr.status)); return; }
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (data.status !== 'ok' || !data.bestmove) return;
+          const nativeDepth = typeof data.depth === 'number' ? data.depth : 0;
+          // Native score units are not centipawns: keep evaluation neutral until calibrated.
+          const pv = { moves: [data.bestmove], depth: nativeDepth };
+          const ev: Tree.ClientEval = {
+            fen: work.currentFen, maxDepth: work.maxDepth,
+            depth: nativeDepth, nodes: data.nodes || 0,
+            knps: data.cpu_seconds ? (data.nodes || 0) / (data.cpu_seconds * 1000) : 0,
+            millis: (data.cpu_seconds || 0) * 1000, pvs: [pv]
+          };
+          if (enabled()) onEmit(ev, work);
+        } catch (e) { opts.onCrash(e); }
+      };
+      xhr.onerror = () => {
+        if (italianRequest !== xhr) return;
+        italianRequest = null;
+        italianBusy = false;
+        opts.onCrash(new Error('Italian analysis connection failed'));
+      };
+      xhr.send();
+    } else pool.start(work);
 
     started = {
       path,
@@ -176,7 +214,11 @@ export default function(opts: CevalOpts): CevalCtrl {
 
   function stop() {
     if (!enabled() || !started) return;
-    pool.stop();
+    if (italian) {
+      if (italianRequest) italianRequest.abort();
+      italianRequest = null;
+      italianBusy = false;
+    } else pool.stop();
     lastStarted = started;
     started = false;
   };
@@ -191,7 +233,7 @@ export default function(opts: CevalOpts): CevalCtrl {
   }
 
   const curDepth = () => curEval ? curEval.depth : 0
-  const isComputing = () => !!started && pool.isComputing()
+  const isComputing = () => !!started && (italian ? italianBusy : pool.isComputing())
 
   return {
     pnaclSupported,
@@ -227,8 +269,14 @@ export default function(opts: CevalOpts): CevalCtrl {
     goDeeper,
     canGoDeeper: () => curDepth() < 99 && !isDeeper() && !isComputing(),
     isComputing,
-    engineName: pool.engineName,
-    destroy: pool.destroy,
+    engineName: () => italian ? 'LiFiDama Italian V2' : pool.engineName(),
+    destroy: () => {
+      if (italian) {
+        if (italianRequest) italianRequest.abort();
+        italianRequest = null;
+        italianBusy = false;
+      } else pool.destroy();
+    },
     redraw: opts.redraw
   };
 };

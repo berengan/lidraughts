@@ -111,6 +111,9 @@ GET   /training/:variant/:id/load      controllers.Puzzle.loadVariant(id: Int, v
 POST  /training/:variant/:id/vote      controllers.Puzzle.voteVariant(id: Int, variant: String)
 POST  /training/:variant/:id/round2    controllers.Puzzle.round2Variant(id: Int, variant: String)
 
+# Native Italian analysis (development feature flag)
+GET   /api/italian-analysis            controllers.ItalianAnalysis.evaluate
+
 # User Analysis
 # mobile app sends no site socket version: default to v2
 GET   /analysis/socket                 controllers.UserAnalysis.socket(apiVersion: Int = 2)

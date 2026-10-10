@@ -14,6 +14,8 @@ const gaugeTicks: VNode[] = [...Array(8).keys()].map(i =>
 
 function localEvalInfo(ctrl: ParentCtrl, evs: NodeEvals): Array<VNode | string> {
   const ceval = ctrl.getCeval(), trans = ctrl.trans;
+  if (ceval.variant.key === 'italian' && evs.client && evs.client.depth === 0 && evs.client.pvs.length)
+    return ['Mossa obbligata'];
   if (!evs.client) return [
     evs.server && ctrl.nextNodeBest() ? trans.noarg('usingServerAnalysis') : trans.noarg('loadingEngine'),
   ];
@@ -66,6 +68,8 @@ function threatButton(ctrl: ParentCtrl): VNode | null {
 }
 
 function engineName(ctrl: CevalCtrl): VNode[] {
+  if (ctrl.variant.key === 'italian')
+    return [h('span', ctrl.engineName() || 'LiFiDama Italian V2'), h('span.native', 'native')];
   const version = ctrl.engineName();
   return [
     h('span', version ? {
@@ -124,6 +128,10 @@ export function renderCeval(ctrl: ParentCtrl): VNode | undefined {
     percent = evs.client ? Math.min(100, Math.round(100 * evs.client.depth / (evs.client.maxDepth || instance.effectiveMaxDepth()))) : 0;
   } else if (bestEv && defined(bestEv.win)) {
     pearl = '#' + bestEv.win;
+    percent = 100;
+  } else if (instance.variant.key === 'italian' && evs.client && evs.client.pvs.length) {
+    // Native evaluation is not yet calibrated: display no numeric score.
+    pearl = '—';
     percent = 100;
   } else if (ctrl.gameOver()) {
     pearl = '-';
