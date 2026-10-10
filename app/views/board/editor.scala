@@ -17,7 +17,7 @@ object editor {
     positionsJson: String,
     animationDuration: scala.concurrent.duration.Duration
   )(implicit ctx: Context) = views.html.base.layout(
-    title = trans.boardEditor.txt(),
+    title = "Editor damiera",
     moreJs = frag(
       jsAt(s"compiled/lidraughts.editor${isProd ?? (".min")}.js"),
       embedJsUnsafe(s"""var data=${safeJsonValue(bits.jsData(sit, fen, animationDuration))};data.positions=$positionsJson;
