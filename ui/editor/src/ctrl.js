@@ -114,8 +114,9 @@ module.exports = function(cfg) {
     const variant = this.data.variants.find(v => v.key === key);
     if (!variant) return;
     const newSize = variant.board.size[0] !== this.data.variant.board.size[0] || variant.board.size[1] !== this.data.variant.board.size[1],
+      newGeometry = (variant.key === 'italian') !== (this.data.variant.key === 'italian'),
       changeInitial = variant.initialFen !== this.data.variant.initialFen && fenCompare(this.computeFen(), this.data.variant.initialFen);
-    if (newSize || changeInitial) {
+    if (newSize || newGeometry || changeInitial) {
       // recreate draughtsground on startingposition with new boardsize
       this.cfg.fen = variant.initialFen;
       this.draughtsground = undefined;
