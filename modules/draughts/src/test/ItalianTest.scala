@@ -88,6 +88,9 @@ class ItalianTest extends Specification {
       // RoundDuct feeds the first landing square to Player.draughtsnet,
       // which calls game.draughts with finalSquare = false.
       val playable = Italian.validMovesFrom(sit, origin, finalSquare = false)
+      println("DIAGNOSTIC 18x2: " + playable.map(m =>
+        s"dest=${m.dest.fieldNumber} captures=${m.capture.map(_.map(_.fieldNumber))} taken=${m.taken.map(_.map(_.fieldNumber))}"
+      ).mkString(" | "))
       playable.exists(m => m.dest == intermediate && m.captures) must beTrue
     }
 
