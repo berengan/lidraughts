@@ -34,6 +34,12 @@ case object Italian extends Variant(
   override def kingCapturesLongRange = false
   override def captureEndsOnPromotion = true
 
+  // A king reaching the opponent back rank is already promoted.
+  // The base implementation tries to promote it again and drops the legal move.
+  override def maybePromote(move: Move): Option[Move] =
+    if (move.piece.role == King) Some(move)
+    else super.maybePromote(move)
+
   // Men capture forward only. Kings capture in both directions.
   override def captureDirsFor(actor: Actor): Directions =
     actor.piece.role match {
