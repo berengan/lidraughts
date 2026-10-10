@@ -85,13 +85,11 @@ class ItalianTest extends Specification {
       complete must haveSize(1)
       complete.head.capture.exists(_.size == 2) must beTrue
 
-      // RoundDuct feeds the first landing square to Player.draughtsnet,
-      // which calls game.draughts with finalSquare = false.
+      // Italian promotion-ending captures are legal as one full move even
+      // with finalSquare=false; RoundDuct must not split them at square 11.
       val playable = Italian.validMovesFrom(sit, origin, finalSquare = false)
-      println("DIAGNOSTIC 18x2: " + playable.map(m =>
-        s"dest=${m.dest.fieldNumber} captures=${m.capture.map(_.map(_.fieldNumber))} taken=${m.taken.map(_.map(_.fieldNumber))}"
-      ).mkString(" | "))
-      playable.exists(m => m.dest == intermediate && m.captures) must beTrue
+      playable.exists(m => m.dest == endpoint && m.capture.exists(_.size == 2)) must beTrue
+      playable.exists(m => m.dest == intermediate && m.captures) must beFalse
     }
 
     "use short-range kings" in {
