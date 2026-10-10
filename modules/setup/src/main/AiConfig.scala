@@ -74,7 +74,14 @@ object AiConfig extends BaseConfig {
 
   val levels = (1 to 8).toList
 
-  val levelChoices = levels map { l => (l.toString, l.toString, none) }
+  // In federation mode, show the four configurable Italian-engine presets.
+  // The Draughtsnet worker maps these legacy numeric levels to INI sections.
+  val levelChoices =
+    if (lidraughts.common.FederationConfig.current.enabled &&
+        lidraughts.common.FederationConfig.current.defaultVariant == draughts.variant.Italian)
+      List(("1", "Beginner", none), ("3", "Intermediate", none),
+           ("6", "Professional", none), ("8", "Ultra", none))
+    else levels map { l => (l.toString, l.toString, none) }
 
   import lidraughts.db.BSON
   import lidraughts.db.dsl._
