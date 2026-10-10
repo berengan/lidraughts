@@ -69,8 +69,8 @@ class ProtocolContractTests(unittest.TestCase):
             "--engine", str(Path(__file__)),
             "--config", str(Path(__file__)),
         ]
-        with patch.object(sys, "argv", argv), \\
-             patch("worker.request", return_value=job) as request, \\
+        with patch.object(sys, "argv", argv), \
+             patch("worker.request", return_value=job) as request, \
              patch("worker.compute", return_value={"bestmove": "2118", "taken": ""}) as compute:
             worker.main()
         self.assertEqual(request.call_count, 1)
