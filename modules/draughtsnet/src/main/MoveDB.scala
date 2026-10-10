@@ -59,8 +59,11 @@ private final class MoveDB(
         lidraughts.mon.draughtsnet.work.acquired(key)(coll.count(_._2.isAcquired))
 
       case Clean =>
-        val since = DateTime.now minusSeconds 3
-        val timedOut = coll.values.filter(_ acquiredBefore since)
+        val now = DateTime.now
+        val timedOut = coll.values.filter { m =>
+          val seconds = if (m.game.variant == draughts.variant.Italian) 12 else 3
+          m acquiredBefore now.minusSeconds(seconds)
+        }
         if (timedOut.nonEmpty) logger.debug(s"cleaning ${timedOut.size} of ${coll.size} moves")
         timedOut.foreach { m => updateOrGiveUp(m.timeout) }
         sender ! timedOut
