@@ -78,7 +78,7 @@ def validate_work(job):
         raise ValueError("received non-Italian job")
     if not re.fullmatch(r"[A-Za-z0-9]{8}",str(job["work"].get("id",""))):
         raise ValueError("invalid work ID")
-    return normalize_fen(job.get("currentFen")), level_for(job.get("level"))
+    return normalize_fen(job.get("currentFen")), level_for(job["work"].get("level"))
 
 def main():
     p = argparse.ArgumentParser()
@@ -93,6 +93,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
     if not args.key: p.error("missing --key or LIFIDAMA_DRAUGHTSNET_KEY")
     if args.poll<1: p.error("--poll must be >= 1")
+    if args.post and args.once:
+        p.error("--once and --post cannot be combined: --once is a diagnostic")
     if not args.engine.is_file() or not args.config.is_file():
         p.error("missing engine/config file")
     meta={"draughtsnet":{"version":"1.0.0","apikey":args.key},
@@ -102,9 +104,9 @@ def main():
             job=request(args.url,"/draughtsnet/acquire",meta)
             if job:
                 fen,level=validate_work(job)
-                result=compute(args.engine,args.config,fen,job["level"])
+                result=compute(args.engine,args.config,fen,job["work"]["level"])
                 LOG.info("job=%s level=%s move=%s",job["work"]["id"],level,result)
-                if args.post and not args.once:
+                if args.post:
                     request(args.url,"/draughtsnet/move/"+job["work"]["id"],
                             {**meta,"move":result})
             elif args.once: LOG.info("no work available")
