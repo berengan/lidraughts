@@ -28,7 +28,46 @@ class ItalianTest extends Specification {
   private def play(situation: Situation, from: Int, to: Int): Situation =
     situation.validMoves(pos(from)).find(_.dest == pos(to)).get.situationAfter
 
+  // Engine/worker protocol uses FID field numbers directly, without the
+  // mirrored legacy-fixture conversion used by the older tests above.
+  private def fidSituation(color: Color, pieces: (Int, Piece)*): Situation =
+    Situation(
+      Board(
+        pieces.map { case (field, piece) => PosItalian.posAt(field).get -> piece }.toMap,
+        DraughtsHistory(),
+        Italian
+      ),
+      color
+    )
+
   "Italian draughts" should {
+
+    "resolve an engine endpoint-only single capture using FID numbers" in {
+      val sit = fidSituation(White, 22 -> (White - Man), 18 -> (Black - Man))
+      val origin = PosItalian.posAt(22).get
+      val endpoint = PosItalian.posAt(13).get
+      val matches = Italian.validMovesFrom(sit, origin, finalSquare = true)
+        .filter(m => m.dest == endpoint && m.captures)
+
+      matches must haveSize(1)
+      matches.head.taken.exists(_.size == 1) must beTrue
+      matches.head.situationAfter.board(endpoint).map(_.color) must beSome(White)
+    }
+
+    "resolve an engine endpoint-only multiple capture using FID numbers" in {
+      val sit = fidSituation(
+        White, 22 -> (White - Man), 18 -> (Black - Man), 10 -> (Black - Man)
+      )
+      val origin = PosItalian.posAt(22).get
+      val endpoint = PosItalian.posAt(6).get
+      val matches = Italian.validMovesFrom(sit, origin, finalSquare = true)
+        .filter(m => m.dest == endpoint && m.captures)
+
+      matches must haveSize(1)
+      matches.head.capture.exists(_.size == 2) must beTrue
+      matches.head.taken.exists(_.size == 2) must beTrue
+      matches.head.situationAfter.board(endpoint).map(_.color) must beSome(White)
+    }
 
     "use short-range kings" in {
       val sit = situation(

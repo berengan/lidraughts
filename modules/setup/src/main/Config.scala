@@ -115,14 +115,18 @@ trait BaseConfig {
     if (federation.enabled) variants ::: (federation.allowsGameVariant(FromPosition) option FromPosition.id).toList
     else variants :+ FromPosition.id
 
-  // The current computer engine has not been validated for Italian draughts.
+  // Italian AI is deliberately opt-in until the native worker is validated end-to-end.
+  private val italianAiEnabled = sys.env.get("LIFIDAMA_ITALIAN_AI_ENABLED").contains("true")
   private val legacyAiVariants = List(
     Standard, draughts.variant.Frisian, draughts.variant.Frysk,
     draughts.variant.Antidraughts, draughts.variant.Breakthrough, FromPosition
   )
-  val aiVariants =
-    if (federation.enabled) legacyAiVariants.filter(federation.allowsGameVariant(_)).map(_.id)
-    else legacyAiVariants.map(_.id)
+  val aiVariants = {
+    val enabled = legacyAiVariants :::
+      (if (italianAiEnabled) List(draughts.variant.Italian) else Nil)
+    if (federation.enabled) enabled.filter(federation.allowsGameVariant(_)).map(_.id)
+    else enabled.map(_.id)
+  }
 
   val fromPositionVariants =
     if (federation.enabled)

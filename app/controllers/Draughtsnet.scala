@@ -17,7 +17,7 @@ object Draughtsnet extends LidraughtsController {
   private val logger = lidraughts.log("draughtsnet")
 
   def acquire = ClientAction[JsonApi.Request.Acquire] { req => client =>
-    api acquire client addEffect { jobOpt =>
+    api.acquire(client, req.scan.name) addEffect { jobOpt =>
       val mon = lidraughts.mon.draughtsnet.http.acquire(client.skill.toString)
       if (jobOpt.isDefined) mon.hit() else mon.miss()
     } map Right.apply
@@ -25,17 +25,17 @@ object Draughtsnet extends LidraughtsController {
 
   def move(workId: String) = ClientAction[JsonApi.Request.PostMove] { data => client =>
     api.postMove(Work.Id(workId), client, data) >>
-      api.acquire(client).map(Right.apply)
+      api.acquire(client, data.scan.name).map(Right.apply)
   }
 
   def commentary(workId: String) = ClientAction[JsonApi.Request.PostCommentary] { data => client =>
     api.postCommentary(Work.Id(workId), client, data) >>
-      api.acquire(client).map(Right.apply)
+      api.acquire(client, data.scan.name).map(Right.apply)
   }
 
   def analysis(workId: String) = ClientAction[JsonApi.Request.PostAnalysis] { data => client =>
     import lidraughts.draughtsnet.DraughtsnetApi._
-    def acquireNext = api acquire client map Right.apply
+    def acquireNext = api.acquire(client, data.scan.name) map Right.apply
     api.postAnalysis(Work.Id(workId), client, data).flatFold({
       case WorkNotFound => acquireNext
       case GameNotFound => acquireNext

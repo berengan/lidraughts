@@ -176,7 +176,8 @@ object JsonApi {
       id: String,
       level: Int,
       game: Game,
-      clock: Option[Work.Clock]
+      clock: Option[Work.Clock],
+      currentFen: FEN
   ) extends Work
 
   case class Commentary(
@@ -192,7 +193,7 @@ object JsonApi {
       skipPositions: List[Int]
   ) extends Work
 
-  def moveFromWork(m: Work.Move) = Move(m.id.value, m.level, fromGame(m.game), m.clock)
+  def moveFromWork(m: Work.Move) = Move(m.id.value, m.level, fromGame(m.game), m.clock, m.currentFen)
 
   def commentaryFromWork(nodes: Int)(m: Work.Commentary) = Commentary(
     id = m.id.value,
@@ -267,7 +268,8 @@ object JsonApi {
             "id" -> m.id,
             "level" -> m.level,
             "clock" -> m.clock
-          )
+          ),
+          "currentFen" -> m.currentFen
         )
       }) ++ Json.toJson(work.game).as[JsObject]
     }

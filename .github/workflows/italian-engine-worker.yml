@@ -1,0 +1,23 @@
+name: Italian engine worker checks
+
+on:
+  push:
+    branches: [feature/lifidama-italian-engine]
+  pull_request:
+    paths:
+      - 'lifidama-engine/**'
+      - '.github/workflows/italian-engine-worker.yml'
+
+jobs:
+  protocol-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python syntax
+        run: python3 -m compileall -q lifidama-engine
+      - name: Draughtsnet worker protocol unit tests
+        working-directory: lifidama-engine
+        run: python3 -m unittest -v test_worker.py
